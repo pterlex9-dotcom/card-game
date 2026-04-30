@@ -9655,17 +9655,20 @@
             } else if (gameState.phase === 1 && gameState.phase1Player === player.id && !player.hasPlayed) {
                 notifText.textContent = '✅ Pilih Bebas kartu di bawah';
                 notification.style.display = 'block';
-                notification.style.background = '';
-                notification.style.color = '';
+                notification.style.background = '#4caf50';
+                notification.style.border = '2px solid #2e7d32';
+                notification.style.color = '#fff';
             } else if (gameState.phase === 2 && !player.hasPlayed && !player.mustDraw && !player.mustForcePick && hasMatchingCard) {
                 notifText.textContent = '✅ Pilih kartu di bawah Dari Provinsi Yang Sama';
                 notification.style.display = 'block';
-                notification.style.background = '';
-                notification.style.color = '';
+                notification.style.background = '#4caf50';
+                notification.style.border = '2px solid #2e7d32';
+                notification.style.color = '#fff';
             } else {
                 notification.style.display = 'none';
-                notification.style.background = '';
-                notification.style.color = '';
+                notification.style.background = '#4caf50';
+                notification.style.border = '2px solid #2e7d32';
+                notification.style.color = '#fff';
             }
 
             updateTopCardsUI();
