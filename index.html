@@ -3748,6 +3748,8 @@
             </div>
             <div class="dl-section-title">Rate kartu level ini</div>
             <div class="dl-rate-grid" id="dl-rate-grid"></div>
+            <div class="dl-section-title" style="margin-top:12px;">📦 Stok Kartu Tersisa per Provinsi</div>
+            <div id="dl-province-stock" style="display:flex;flex-wrap:wrap;gap:6px;padding:6px 4px;max-height:160px;overflow-y:auto;"></div>
         </div>
     </div>
 
@@ -7996,7 +7998,13 @@
                 }
 
                 case 'LOG':
-                    if (data.message) addLog(data.message);
+                    if (data.message) {
+                        addLog(data.message);
+                        // Notifikasi khusus: kartu provinsi habis di kartu tersisa
+                        if (data.message.includes('pada kartu tersisa telah habis')) {
+                            showNotification(data.message.replace(/^🚫\s*/, '🚫 '));
+                        }
+                    }
                     break;
 
                 case 'ERROR':
@@ -11272,6 +11280,26 @@
                 }
 
                 document.getElementById('draw-level-overlay').classList.add('active');
+
+                // Render stok per provinsi di drawPile
+                const provStockEl = document.getElementById('dl-province-stock');
+                if (provStockEl) {
+                    provStockEl.innerHTML = '';
+                    const provinceStock = (gameState && gameState.provinceStock) || {};
+                    const currentProv = gameState && gameState.currentProvince;
+                    const entries = Object.entries(provinceStock).sort((a, b) => b[1] - a[1]);
+                    if (entries.length === 0) {
+                        provStockEl.innerHTML = '<span style="color:#f87171;font-size:0.85em;">Kartu tersisa habis</span>';
+                    } else {
+                        entries.forEach(([prov, count]) => {
+                            const chip = document.createElement('div');
+                            const isActive = prov === currentProv;
+                            chip.style.cssText = `display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:0.78em;font-weight:600;background:${isActive ? 'rgba(251,191,36,0.25)' : 'rgba(255,255,255,0.08)'};border:1px solid ${isActive ? '#fbbf24' : 'rgba(255,255,255,0.15)'};color:${isActive ? '#fcd34d' : 'rgba(255,255,255,0.8)'}`;
+                            chip.innerHTML = `${isActive ? '🎯 ' : ''}${prov} <span style="color:#34d399;font-weight:800;">${count}</span>`;
+                            provStockEl.appendChild(chip);
+                        });
+                    }
+                }
             } catch (e) {
                 console.error('[showDrawLevelInfo] Error saat render popup:', e);
                 // Tetap tampilkan overlay meskipun render parsial gagal
