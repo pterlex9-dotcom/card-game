@@ -422,8 +422,8 @@
             border: 2px solid rgba(255,255,255,0.18);
             border-radius: 24px;
             padding: 30px 32px;
-            max-width: 620px;
-            width: 96%;
+            max-width: 860px;
+            width: 98%;
             text-align: center;
             margin: 0 auto;
             animation: fadeInUp 0.4s ease;
@@ -442,7 +442,7 @@
         }
         .prov-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 10px;
             margin-bottom: 22px;
         }
@@ -450,11 +450,12 @@
             background: rgba(255,255,255,0.1);
             border: 1.5px solid rgba(255,255,255,0.2);
             border-radius: 12px;
-            padding: 10px 10px;
+            padding: 12px 10px;
             font-size: 0.88em;
             color: #fff;
             display: flex; flex-direction: column; align-items: center; gap: 6px;
             text-align: center;
+            min-height: 90px;
         }
         .prov-chip.mandatory {
             background: rgba(255, 200, 0, 0.18);
@@ -1794,6 +1795,15 @@
         .dl-rate-top-badge {
             font-size: 0.7em; font-weight: bold; color: #ffd700;
             background: rgba(255,210,0,0.2); border: 1px solid rgba(255,210,0,0.5);
+            border-radius: 6px; padding: 1px 6px; margin-left: 6px; white-space: nowrap;
+        }
+        .dl-rate-row.dl-rate-reset {
+            background: rgba(52,211,153,0.12);
+            border: 1px solid rgba(52,211,153,0.4);
+        }
+        .dl-rate-reset-badge {
+            font-size: 0.7em; font-weight: bold; color: #34d399;
+            background: rgba(52,211,153,0.18); border: 1px solid rgba(52,211,153,0.45);
             border-radius: 6px; padding: 1px 6px; margin-left: 6px; white-space: nowrap;
         }
         .btn-dl-info {
@@ -3138,10 +3148,10 @@
             .party-slot-name { font-size: 0.72em; }
 
             /* Province preview */
-            #provinces-preview { padding: 18px 14px; }
-            .prov-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-            .prov-chip-icon { width: 48px; height: 34px; }
-            .prov-chip { font-size: 0.8em; }
+            #provinces-preview { padding: 18px 10px; max-width: 100%; }
+            .prov-grid { grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+            .prov-chip-icon { width: 40px; height: 28px; }
+            .prov-chip { font-size: 0.72em; padding: 8px 4px; min-height: 70px; }
 
             /* Log */
             .log-area { max-height: 80px; }
@@ -5098,6 +5108,7 @@
             // Pastikan popup error & overlay tidak tertinggal dari sesi game sebelumnya
             const _errHome = document.getElementById('server-error-popup');
             if (_errHome) _errHome.style.display = 'none';
+            window._reconnectingOverlayLocked = false; // [FIX] Reset kunci saat kembali ke home
             const _ovHome = document.getElementById('reconnecting-overlay');
             if (_ovHome) _ovHome.style.display = 'none';
             window._serverErrorRetryFn = null;
@@ -5299,17 +5310,60 @@
 
             // ── Pasang listener koneksi Firebase ──
             _connectedRef = db.ref('.info/connected');
+            let _connectedReady = false; // [FIX] skip false pertama saat Firebase baru connect
             _connectedRef.on('value', async (snap) => {
-                if (snap.val() !== true) return;
-                _presenceRef.onDisconnect().remove();
-                await _presenceRef.set({
-                    nickname,
-                    device:    deviceLabel,
-                    loginAt:   Date.now(),
-                    heartbeat: Date.now(),
-                    online:    true,
-                    token:     _sessionToken,
-                });
+                if (snap.val() === true) {
+                    _connectedReady = true;
+                    // ── Kembali online / baru connect ──
+                    _presenceRef.onDisconnect().remove();
+                    await _presenceRef.set({
+                        nickname,
+                        device:    deviceLabel,
+                        loginAt:   Date.now(),
+                        heartbeat: Date.now(),
+                        online:    true,
+                        token:     _sessionToken,
+                    });
+                    // Tutup popup error koneksi jika masih terbuka
+                    const _ep = document.getElementById('server-error-popup');
+                    const _em = document.getElementById('server-error-msg');
+                    if (_ep && _ep.style.display === 'flex' && _em &&
+                        (_em.textContent.includes('internet terputus') ||
+                         _em.textContent.includes('server terputus'))) {
+                        _em.textContent = 'Koneksi internet kembali!\nTekan Coba Lagi untuk melanjutkan.';
+                        if (typeof showToast === 'function') showToast('✅ Koneksi internet kembali!', 'success');
+                    }
+                } else {
+                    // [FIX] Abaikan false pertama — Firebase selalu emit false sebelum true
+                    if (!_connectedReady) return;
+                    // ── Firebase terputus (setelah sebelumnya pernah connect) ──
+                    // Jangan tampilkan saat masih di loading screen
+                    const fl = document.getElementById('firebase-loading');
+                    const pl = document.getElementById('pre-loading-screen');
+                    if (fl && fl.style.display !== 'none' && fl.style.opacity !== '0') return;
+                    if (pl && pl.style.display !== 'none') return;
+
+                    const inGame = !!(window.currentRoomId && window.myPlayerId);
+                    if (inGame) return; // in-game: ws.onclose yang handle
+
+                    const _ep = document.getElementById('server-error-popup');
+                    if (_ep && _ep.style.display === 'flex') return; // sudah ada popup
+                    if (typeof showServerError === 'function') {
+                        showServerError(
+                            'Koneksi internet terputus!\nWiFi atau data seluler kamu mati.\n\nNyalakan kembali koneksi lalu tekan Coba Lagi.',
+                            () => {
+                                if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay(true);
+                                if (!navigator.onLine) {
+                                    showServerError('Koneksi internet masih terputus!\nNyalakan WiFi atau data seluler terlebih dahulu, lalu tekan Coba Lagi.', null);
+                                } else {
+                                    // [BUG FIX v8] Jangan auto-hide popup — reconnect jalan di background.
+                                    // onopen akan update pesan popup, user klik Coba Lagi untuk tutup.
+                                    if (typeof _reconnectHomeWs === 'function') setTimeout(_reconnectHomeWs, 500);
+                                }
+                            }
+                        );
+                    }
+                }
             });
 
             // ── Heartbeat tiap 10 detik ─ agar sesi ini dianggap aktif ──
@@ -5886,8 +5940,17 @@
                 addLog('❌ Gagal reconnect setelah 3 percobaan.');
                 lsDel(LS.ROOM_ID); lsDel(LS.PLAYER_ID); lsDel(LS.IS_SPECTATOR); lsDel(LS.GAME_ACTIVE);
                 reconnectAttempts = 0;
+                // [FIX] Simpan roomId/playerId dulu sebelum di-null, untuk dipakai oleh retry callback
+                const _savedRoom   = roomId   || currentRoomId;
+                const _savedPlayer = playerId || myPlayerId;
+                // [FIX] Null-kan variabel JS agar isInGame tidak false-positive di hideServerErrorPopup
+                // setelah gagal total — user harus di halaman home, bukan in-game
+                currentRoomId = null; myPlayerId = null;
+                // [FIX] Tandai bahwa popup ini berasal dari gagal reconnect game,
+                // bukan dari home — agar hideServerErrorPopup tetap menjalankan fn()
+                window._pendingReconnectRetry = true;
                 // Sembunyikan overlay reconnecting, tampilkan popup error
-                _hideReconnectingOverlay();
+                _hideReconnectingOverlay(true);
                 document.getElementById('game-container').classList.remove('active');
                 document.getElementById('matchmaking-screen').classList.remove('active');
                 document.getElementById('pre-loading-screen').style.display = 'none';
@@ -5898,8 +5961,15 @@
                     'Gagal menyambung kembali ke server setelah 3 percobaan.\n\nServer mungkin sedang bermasalah atau koneksimu tidak stabil.',
                     () => {
                         reconnectAttempts = 0;
-                        if (roomId && playerId) {
-                            reconnectToGame(roomId, playerId);
+                        // [FIX] Gunakan _savedRoom/_savedPlayer yang disimpan sebelum di-null
+                        const _retryRoom   = _savedRoom   || lsGet(LS.ROOM_ID);
+                        const _retryPlayer = _savedPlayer || lsGet(LS.PLAYER_ID);
+                        if (_retryRoom && _retryPlayer) {
+                            // [FIX] Pulihkan currentRoomId/myPlayerId agar hideServerErrorPopup
+                            // mendeteksi isInGame=true dan menjalankan fn() dengan benar
+                            currentRoomId = _retryRoom;
+                            myPlayerId    = _retryPlayer;
+                            reconnectToGame(_retryRoom, _retryPlayer);
                         } else {
                             location.reload();
                         }
@@ -5911,6 +5981,12 @@
             reconnectAttempts++;
             stopPingMeasurement();
 
+            // [BUG FIX] Hentikan countdown provinsi & fallback timeout saat reconnect
+            // agar tidak ada race condition: interval lama berjalan bersamaan setelah PROVINCES_SELECTED
+            // diterima ulang, dan fallback lama tidak memaksa balik ke home di tengah reconnect.
+            if (typeof _cdInterval !== 'undefined' && _cdInterval) { clearInterval(_cdInterval); _cdInterval = null; }
+            if (window._gameStartedTimeout) { clearTimeout(window._gameStartedTimeout); window._gameStartedTimeout = null; }
+
             // Tampilkan overlay "Menyambung Kembali..." — blokir semua input
             _showReconnectingOverlay(`Menyambung kembali... (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})\nHarap tunggu, jangan tutup halaman ini.`);
 
@@ -5921,6 +5997,9 @@
             }
 
             // Sembunyikan layar game/matchmaking selama reconnect
+            // [BUG FIX] Sembunyikan juga match-starting div agar sisa UI "lawan ditemukan" tidak muncul
+            const _matchStartingEl = document.getElementById('match-starting');
+            if (_matchStartingEl) _matchStartingEl.style.display = 'none';
             document.getElementById('matchmaking-screen').classList.remove('active');
             document.getElementById('profile-badge').style.display = 'none';
             document.getElementById('game-container').classList.remove('active');
@@ -5953,6 +6032,10 @@
                     const _retryBtn = document.getElementById('server-error-retry-btn');
                     if (_retryBtn) _retryBtn.textContent = 'Coba Lagi';
                     if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+                    // [BUG FIX] Hentikan fallback timeout "kembali ke home" dari fase PROVINCES_SELECTED
+                    // agar tidak memaksa balik ke home setelah reconnect berhasil
+                    if (window._gameStartedTimeout) { clearTimeout(window._gameStartedTimeout); window._gameStartedTimeout = null; }
+                    if (typeof _cdInterval !== 'undefined' && _cdInterval) { clearInterval(_cdInterval); _cdInterval = null; }
                     // ─────────────────────────────────────────────────────────────
 
                     // [SECURITY FIX] Simpan data game dulu, jangan tampilkan UI sebelum validasi
@@ -5988,7 +6071,7 @@
                                 }
                                 if (pwChangedAt > 0 && myLoginAt > 0 && pwChangedAt > myLoginAt) {
                                     // Password diubah saat offline → blokir, minta login ulang
-                                    _hideReconnectingOverlay();
+                                    _hideReconnectingOverlay(true);
                                     if (typeof _showPasswordChangedModal === 'function') {
                                         _showPasswordChangedModal();
                                     }
@@ -5996,27 +6079,44 @@
                                 }
 
                                 // ── CEK 2: Ada sesi aktif lain di device lain? ──
-                                // Gunakan threshold 15 detik (konsisten dengan checkSingleSessionBeforePlay)
+                                // [BUG FIX] Perbarui heartbeat sesi kita sendiri DULU sebelum cek,
+                                // agar data fresh dan sesi kita tidak salah dianggap "sesi lain".
+                                // Gunakan threshold 45 detik saat reconnect (lebih longgar dari normal
+                                // 15 detik) karena heartbeat bisa stale akibat offline.
                                 if (presSnap.exists() && _sessionToken) {
+                                    // Update heartbeat kita sendiri dulu agar tidak stale
+                                    try {
+                                        await db.ref(`presence/${uid}/${_sessionToken}/heartbeat`).set(Date.now());
+                                    } catch(_hbErr) { /* lanjutkan walau gagal */ }
+
                                     const now = Date.now();
+                                    // [BUG FIX] Ambil snapshot presence terbaru setelah heartbeat update
+                                    let freshPresSnap;
+                                    try {
+                                        freshPresSnap = await db.ref(`presence/${uid}`).get();
+                                    } catch(_e) {
+                                        freshPresSnap = presSnap; // fallback ke snapshot lama
+                                    }
+
                                     let otherActive = false;
                                     let otherDevice = 'perangkat lain';
-                                    presSnap.forEach(child => {
+                                    freshPresSnap.forEach(child => {
                                         const sess = child.val();
                                         if (!sess || typeof sess !== 'object') return;
                                         // Skip sesi milik kita sendiri (cek key node DAN field token)
                                         if (child.key === _sessionToken) return;
                                         if (sess.token && sess.token === _sessionToken) return;
-                                        // Heartbeat < 15 detik = masih aktif
+                                        // [BUG FIX] Gunakan threshold 45 detik saat reconnect
+                                        // agar heartbeat yang stale akibat offline tidak memicu false positive
                                         const hb = sess.heartbeat || sess.loginAt || 0;
-                                        if ((now - hb) < 15000) {
+                                        if ((now - hb) < 45000) {
                                             otherActive = true;
                                             otherDevice = sess.device || 'perangkat lain';
                                         }
                                     });
                                     if (otherActive) {
                                         // Ada sesi lain aktif → blokir tampilan game
-                                        _hideReconnectingOverlay();
+                                        _hideReconnectingOverlay(true);
                                         if (typeof _showKickedOutModal === 'function') {
                                             _showKickedOutModal(otherDevice);
                                         }
@@ -6040,7 +6140,62 @@
                             if (_isSpectator) { _btnSurrR.style.display = 'none'; }
                             else { _btnSurrR.style.display = ''; _btnSurrR.disabled = false; }
                         }
-                        _hideReconnectingOverlay();
+
+                        // [BUG FIX] Tutup semua layar/popup/lobby yang mungkin masih terbuka
+                        // saat koneksi terputus — agar tidak bertumpuk di atas game yang kembali aktif.
+                        // Mencakup: halaman profil, setting, ensiklopedia, teman, pencapaian,
+                        // lobi party/custom room, popup kartu provinsi, modal menyerah,
+                        // hasil pertandingan, game dijeda, change-password, dll.
+                        (function _closeAllBeforeReconnect() {
+                            // ── Layar navigasi ──
+                            ['profile-screen','settings-screen','leaderboard-screen',
+                             'teman-screen','encyclopedia-screen','pengembang-screen',
+                             'view-profile-modal','ingame-settings-panel'].forEach(id => {
+                                const el = document.getElementById(id);
+                                if (el) el.style.display = 'none';
+                            });
+                            // ── Overlay & modal classList ──
+                            ['achievement-screen','visit-profile-screen','draw-level-overlay',
+                             'ach-popup-overlay','ach-slot-picker'].forEach(id => {
+                                const el = document.getElementById(id);
+                                if (el) el.classList.remove('active');
+                            });
+                            // ── Overlay style.display ──
+                            ['rank-info-overlay','game-paused-overlay','change-password-modal',
+                             'avatar-picker-overlay'].forEach(id => {
+                                const el = document.getElementById(id);
+                                if (el) el.style.display = 'none';
+                            });
+                            // ── Modal in-game (province info, surrender, match result) ──
+                            ['province-info-modal','surrender-choice-modal','match-result-modal'].forEach(id => {
+                                const el = document.getElementById(id);
+                                if (el) el.classList.remove('active');
+                            });
+                            // ── Party & Custom Room lobby ──
+                            ['party-lobby-overlay','party-invite-popup','kostum-picker-overlay',
+                             'custom-room-overlay','custom-room-invite-popup','custom-friend-picker',
+                             'party-friend-picker'].forEach(id => {
+                                const el = document.getElementById(id);
+                                if (el) el.style.display = 'none';
+                            });
+                            // ── Bubble lobby ──
+                            ['party-lobby-bubble','custom-lobby-bubble'].forEach(id => {
+                                const el = document.getElementById(id);
+                                if (el) el.style.display = 'none';
+                            });
+                            // ── Reset state custom room ──
+                            _customRoomId = null; _customRoomRole = null;
+                            _customPickerSlot = null; _pendingCustomJoin = false;
+                            if (typeof _resetCustomRoomOverlay === 'function') try { _resetCustomRoomOverlay(); } catch(_e) {}
+                            if (typeof _stopCustomPresenceListener === 'function') try { _stopCustomPresenceListener(); } catch(_e) {}
+                            if (typeof _stopCustomDeclineListener  === 'function') try { _stopCustomDeclineListener();  } catch(_e) {}
+                            // ── Reset game-paused state ──
+                            window._gamePaused = false;
+                            // ── Reset previous screen tracker ──
+                            if (typeof _achPreviousScreen !== 'undefined') _achPreviousScreen = null;
+                        })();
+
+                        _hideReconnectingOverlay(true);
                         document.getElementById('pre-loading-screen').style.display = 'none';
                         DOM.gameContainer.classList.add('active');
                         updateGameUI(_capturedGameData.state);
@@ -6083,7 +6238,7 @@
                     if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
                     // ─────────────────────────────────────────────────────────────
                     currentRoomId = null; myPlayerId = null;
-                    _hideReconnectingOverlay();
+                    _hideReconnectingOverlay(true);
                     document.getElementById('game-container').classList.remove('active');
                     showPreloadingScreen(false);
                     showHomeButtons();
@@ -6102,7 +6257,7 @@
                     // ─────────────────────────────────────────────────────────────
                     _isCustomRoom = !!data.isCustomRoom;
                     _isSpectator  = !!data.isSpectator;
-                    _hideReconnectingOverlay();
+                    _hideReconnectingOverlay(true);
                     const _ps = document.getElementById('pre-loading-screen');
                     _ps.classList.add('hidden');
                     setTimeout(() => { _ps.style.display = 'none'; }, 500);
@@ -6141,12 +6296,26 @@
         // =============================================
         // RECONNECT SEBAGAI SPECTATOR
         // =============================================
+        window._spectatorReconnectAttempts = 0;
+        const _SPECTATOR_MAX_RECONNECT = 3;
         function reconnectAsSpectator(roomId) {
+            // [BUG FIX v8] Batasi percobaan reconnect spectator
+            if (window._spectatorReconnectAttempts >= _SPECTATOR_MAX_RECONNECT) {
+                window._spectatorReconnectAttempts = 0;
+                if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay(true);
+                lsDel(LS.ROOM_ID); lsDel(LS.IS_SPECTATOR); lsDel(LS.GAME_ACTIVE);
+                showPreloadingScreen(false);
+                showHomeButtons();
+                if (typeof showToast === 'function') showToast('ℹ️ Gagal menyambung kembali sebagai penonton. Kembali ke beranda.', 'info');
+                return;
+            }
+            window._spectatorReconnectAttempts++;
+
             const _preScreen = document.getElementById('pre-loading-screen');
             _preScreen.style.display = 'flex';
             _preScreen.classList.remove('hidden');
             const _infoEl = document.getElementById('pre-loading-info');
-            if (_infoEl) { _infoEl.style.display = 'block'; _infoEl.textContent = '🔄 Menyambung kembali sebagai penonton...'; }
+            if (_infoEl) { _infoEl.style.display = 'block'; _infoEl.textContent = `🔄 Menyambung kembali sebagai penonton... (${window._spectatorReconnectAttempts}/${_SPECTATOR_MAX_RECONNECT})`; }
 
             if (ws) {
                 ws.onclose = null; ws.onerror = null; ws.onmessage = null;
@@ -6171,6 +6340,7 @@
                     const data = JSON.parse(event.data);
                     if (data.type === 'GAME_STARTED' && data.isSpectator) {
                         spectatorReconnected.value = true;
+                        window._spectatorReconnectAttempts = 0; // [BUG FIX v8] Reset counter saat berhasil
                         currentRoomId  = roomId;
                         myPlayerId     = null;
                         _isSpectator   = true;
@@ -6197,17 +6367,38 @@
 
             ws.onerror = () => {
                 stopClientKeepAlive();
-                lsDel(LS.ROOM_ID); lsDel(LS.IS_SPECTATOR); lsDel(LS.GAME_ACTIVE);
-                showPreloadingScreen(false);
-                showHomeButtons();
+                // [BUG FIX v8] Jangan langsung ke home — coba reconnect dulu
+                if (typeof window._showReconnectingOverlay === 'function')
+                    window._showReconnectingOverlay('Koneksi penonton terputus...\nMencoba menyambung kembali...');
+                if (!spectatorReconnected.value) {
+                    setTimeout(() => {
+                        if (typeof reconnectAsSpectator === 'function') reconnectAsSpectator(roomId);
+                    }, 3000);
+                }
             };
 
             ws.onclose = () => {
                 stopClientKeepAlive();
                 if (!spectatorReconnected.value) {
-                    lsDel(LS.ROOM_ID); lsDel(LS.IS_SPECTATOR); lsDel(LS.GAME_ACTIVE);
-                    showPreloadingScreen(false);
-                    showHomeButtons();
+                    // [BUG FIX v8] Coba reconnect sebelum menyerah ke home
+                    if (typeof window._showReconnectingOverlay === 'function')
+                        window._showReconnectingOverlay('Koneksi penonton terputus...\nMencoba menyambung kembali...');
+                    setTimeout(() => {
+                        if (typeof reconnectAsSpectator === 'function') reconnectAsSpectator(roomId);
+                        else {
+                            lsDel(LS.ROOM_ID); lsDel(LS.IS_SPECTATOR); lsDel(LS.GAME_ACTIVE);
+                            showPreloadingScreen(false);
+                            showHomeButtons();
+                        }
+                    }, 3000);
+                } else {
+                    // Sudah reconnect tapi putus lagi → tampilkan overlay dan coba lagi
+                    spectatorReconnected.value = false;
+                    if (typeof window._showReconnectingOverlay === 'function')
+                        window._showReconnectingOverlay('Koneksi terputus...\nMencoba menyambung kembali ke pertandingan...');
+                    setTimeout(() => {
+                        if (typeof reconnectAsSpectator === 'function') reconnectAsSpectator(roomId);
+                    }, 3000);
                 }
             };
         }
@@ -6891,6 +7082,7 @@
         // WEBSOCKET & GAME STATE
         // =============================================
         const SERVER_URL = "wss://card-game-kompe-production.up.railway.app";
+        window.SERVER_URL = SERVER_URL; // Ekspos ke window agar fungsi di luar scope bisa mengaksesnya
 
         let ws = null;
         let currentRoomId = null;
@@ -7253,7 +7445,8 @@
             const _errEl = document.getElementById('server-error-popup');
             if (_errEl) _errEl.style.display = 'none';
             const _ovEl = document.getElementById('reconnecting-overlay');
-            if (_ovEl) _ovEl.style.display = 'none';
+            // [FIX] Jangan tutup overlay jika sedang proses reconnect (locked)
+            if (_ovEl && !window._reconnectingOverlayLocked) _ovEl.style.display = 'none';
             window._serverErrorRetryFn = null;
             const _rBtn = document.getElementById('server-error-retry-btn');
             if (_rBtn) _rBtn.textContent = 'Coba Lagi';
@@ -7266,7 +7459,7 @@
          */
         function _showKickedOutModal(otherDevice) {
             // Tutup overlay reconnecting agar tidak menutupi modal ini
-            _hideReconnectingOverlay();
+            _hideReconnectingOverlay(true);
 
             // Hindari modal duplikat
             const existing = document.getElementById('_kicked-modal');
@@ -7327,7 +7520,7 @@
         /** Modal: password diganti dari device lain. Device ini harus login ulang. */
         function _showPasswordChangedModal() {
             // Tutup reconnecting-overlay agar tidak menutupi modal ini
-            _hideReconnectingOverlay();
+            _hideReconnectingOverlay(true);
             // Tutup semua modal sesi yang mungkin masih terbuka
             const old = document.getElementById('_sas-modal');
             if (old) old.remove();
@@ -7490,7 +7683,7 @@
                                 startMatchmaking();
                             } else {
                                 // User sudah kembali ke home — jangan otomatis cari lawan
-                                if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay();
+                                if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay(true);
                             }
                         }
                     }
@@ -7500,6 +7693,18 @@
             ws.onclose = () => {
                 stopClientKeepAlive();
                 stopAutoModeTimer();
+                // [BUG FIX] Jika putus saat di custom room/party lobby (belum game),
+                // bersihkan state lobby agar tidak ghost saat reconnect nanti.
+                if (!currentRoomId && !_pendingRoomId) {
+                    // Hanya bersihkan jika belum masuk game sama sekali
+                    if (_customRoomId || _customRoomRole) {
+                        _customRoomId = null; _customRoomRole = null;
+                        _customPickerSlot = null; _pendingCustomJoin = false;
+                        if (typeof _resetCustomRoomOverlay === 'function') try { _resetCustomRoomOverlay(); } catch(_e) {}
+                        if (typeof _stopCustomPresenceListener === 'function') try { _stopCustomPresenceListener(); } catch(_e) {}
+                        if (typeof _stopCustomDeclineListener  === 'function') try { _stopCustomDeclineListener();  } catch(_e) {}
+                    }
+                }
                 if (currentRoomId && myPlayerId) {
                     // Koneksi putus saat in-game → tampilkan overlay reconnecting, jangan ke home
                     lsSet(LS.ROOM_ID, currentRoomId);
@@ -7510,26 +7715,43 @@
                     reconnectAttempts = 0;
                     if (reconnectTimer) clearTimeout(reconnectTimer);
                     reconnectTimer = setTimeout(() => reconnectToGame(currentRoomId, myPlayerId), 2000);
-                } else {
-                    // Koneksi putus saat matchmaking
+                } else if (_pendingRoomId && _pendingPlayerId) {
+                    // [FIX] Koneksi putus saat fase "Lawan Ditemukan" (PROVINCES_SELECTED → countdown → GAME_STARTED)
+                    // currentRoomId belum di-set (baru di-set saat GAME_STARTED), tapi kita sudah punya data dari server
                     _stopMatchmakingHeartbeat();
-                    const floatBar = document.getElementById('matchmaking-float-bar');
-                    const isMatchmaking = floatBar && floatBar.style.display !== 'none';
+                    addLog('🔄 Koneksi terputus saat countdown, mencoba reconnect ke game...');
+                    lsSet(LS.ROOM_ID, _pendingRoomId);
+                    lsSet(LS.PLAYER_ID, _pendingPlayerId);
+                    lsSet(LS.GAME_ACTIVE, 'true');
+                    _showReconnectingOverlay('Menyambung kembali...\nHarap tunggu sebentar.');
+                    reconnectAttempts = 0;
+                    if (reconnectTimer) clearTimeout(reconnectTimer);
+                    const _snapRoomId   = _pendingRoomId;
+                    const _snapPlayerId = _pendingPlayerId;
+                    reconnectTimer = setTimeout(() => reconnectToGame(_snapRoomId, _snapPlayerId), 2000);
+                } else {
+                    // Koneksi putus saat BUKAN in-game dan BUKAN fase countdown
+                    _stopMatchmakingHeartbeat();
+                    const floatBar  = document.getElementById('matchmaking-float-bar');
+                    const mmScreen  = document.getElementById('matchmaking-screen');
+                    const isMatchmaking = (floatBar && floatBar.style.display !== 'none')
+                                       || (mmScreen && mmScreen.classList.contains('active'));
+
                     if (isMatchmaking) {
+                        // ── Putus saat mencari lawan ──
                         cancelMatchmaking();
                         showServerError(
                             navigator.onLine
                                 ? 'Koneksi ke server terputus saat mencari lawan.\nServer mungkin sedang bermasalah.'
                                 : 'Koneksi internet terputus saat mencari lawan.\nNyalakan kembali WiFi/data lalu coba lagi.',
                             () => {
-                                if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay();
+                                if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay(true);
                                 if (!navigator.onLine) {
                                     showServerError(
                                         'Koneksi internet masih terputus!\nNyalakan WiFi atau data seluler terlebih dahulu.',
                                         null
                                     );
                                 } else {
-                                    // [BUG FIX] Cek apakah user masih ada di layar matchmaking
                                     const _fbCheck  = document.getElementById('matchmaking-float-bar');
                                     const _msCheck  = document.getElementById('matchmaking-screen');
                                     const _inMM     = (_fbCheck && _fbCheck.style.display !== 'none')
@@ -7537,10 +7759,55 @@
                                     if (_inMM && typeof startMatchmaking === 'function') {
                                         startMatchmaking();
                                     }
-                                    // Jika tidak di layar matchmaking, diam saja — user sudah di home
                                 }
                             }
                         );
+                    } else {
+                        // ── [BUG FIX] Putus saat di halaman home / popup / lobby ──
+                        // Sebelumnya tidak ada handling → layar diam tanpa notifikasi apapun.
+                        // Sekarang: tutup semua popup/lobby yang mungkin terbuka (ghost UI),
+                        // lalu tampilkan pesan yang sesuai konteks lokasi user.
+
+                        // Deteksi lokasi user saat putus
+                        const _isPartyLobby  = !!(document.getElementById('party-lobby-overlay')?.style.display === 'flex'
+                                                || document.getElementById('party-lobby-bubble')?.style.display !== 'none');
+                        const _isCustomLobby = !!(_customRoomId || _customRoomRole
+                                                || document.getElementById('custom-room-overlay')?.style.display === 'flex');
+                        const _isInAnyPopup  = ['profile-screen','settings-screen','leaderboard-screen',
+                                                'teman-screen','encyclopedia-screen','pengembang-screen',
+                                                'achievement-screen','rank-info-overlay','draw-level-overlay',
+                                                'ach-popup-overlay','visit-profile-screen'].some(id => {
+                                                    const el = document.getElementById(id);
+                                                    if (!el) return false;
+                                                    return el.style.display === 'flex' || el.style.display === 'block'
+                                                        || el.classList.contains('active');
+                                                });
+
+                        // Buat pesan yang sesuai
+                        let _disconnectMsg;
+                        if (_isPartyLobby) {
+                            _disconnectMsg = 'Koneksi ke server terputus!\nLobby party tidak dapat dilanjutkan.\n\nTekan Coba Lagi untuk menyambung kembali.';
+                        } else if (_isCustomLobby) {
+                            _disconnectMsg = 'Koneksi ke server terputus!\nCustom room tidak dapat dilanjutkan.\n\nTekan Coba Lagi untuk menyambung kembali.';
+                        } else if (navigator.onLine) {
+                            _disconnectMsg = 'Koneksi ke server terputus!\nServer mungkin sedang bermasalah.\n\nTekan Coba Lagi untuk menyambung kembali.';
+                        } else {
+                            _disconnectMsg = 'Koneksi internet terputus!\nWiFi atau data seluler kamu mati.\n\nNyalakan kembali koneksi lalu tekan Coba Lagi.';
+                        }
+
+                        showServerError(_disconnectMsg, () => {
+                            if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay(true);
+                            if (!navigator.onLine) {
+                                showServerError(
+                                    'Koneksi internet masih terputus!\nWiFi atau data seluler kamu belum menyala.\n\nNyalakan koneksi terlebih dahulu, lalu tekan Coba Lagi.',
+                                    null
+                                );
+                                return;
+                            }
+                            // Coba sambungkan ulang WebSocket ke server
+                            showToast('🔄 Menyambung ulang ke server...', 'info');
+                            _reconnectHomeWs();
+                        });
                     }
                 }
             };
@@ -7549,6 +7816,9 @@
         function cancelMatchmaking() {
             stopMatchmakingCountdown();
             hideMatchmakingFloatBar();
+            // [FIX] Bersihkan pending room/player dari fase PROVINCES_SELECTED
+            _pendingRoomId = null;
+            _pendingPlayerId = null;
 
             // Jika sedang dalam party, beritahu semua anggota untuk batal cari lawan
             // HARUS dilakukan SEBELUM ws.close() agar LEAVE_QUEUE masih terkirim
@@ -7670,6 +7940,9 @@
                     break;
 
                 case 'PROVINCES_SELECTED': {
+                    // [FIX] Simpan roomId & playerId agar ws.onclose bisa reconnect di fase countdown ini
+                    if (data.roomId) _pendingRoomId = data.roomId;
+                    if (data.playerId) _pendingPlayerId = data.playerId;
                     hideMatchmakingFloatBar();
                     closeAllScreens();
                     DOM.matchmakingScreen.classList.add('active');
@@ -7681,7 +7954,7 @@
                     const grid = document.getElementById('prov-grid');
                     if (grid) {
                         grid.innerHTML = '';
-                        provinces.forEach(name => {
+                        provinces.slice(0, 12).forEach(name => {
                             const chip = document.createElement('div');
                             chip.className = 'prov-chip' + (name === mandatory ? ' mandatory' : '');
                             const img = document.createElement('img');
@@ -7865,6 +8138,9 @@
                     }
                     currentRoomId = data.roomId;
                     myPlayerId = data.playerId; // null for spectators
+                    // [FIX] Bersihkan pending room/player — sudah di-set ke currentRoomId/myPlayerId
+                    _pendingRoomId = null;
+                    _pendingPlayerId = null;
 
                     // Save session ke localStorage agar bisa rejoin setelah refresh/ganti device
                     if (!_isSpectator) {
@@ -8855,6 +9131,10 @@
         let _rankSnapshot = null;
         // Interval countdown provinsi — disimpan agar bisa di-clear jika PROVINCES_SELECTED diterima ulang
         let _cdInterval = null;
+        // [FIX] Simpan roomId & playerId dari PROVINCES_SELECTED agar ws.onclose bisa reconnect
+        // di fase "lawan ditemukan → countdown" sebelum GAME_STARTED diterima
+        let _pendingRoomId = null;
+        let _pendingPlayerId = null;
 
         // Helper: buat Rank change card dengan animasi counting poin + swap gambar/nama jika rank berubah
         function _buildAnimatedRankCard(container, oldName, oldPts, newName, newPts, delta, insertAfterEl) {
@@ -9149,6 +9429,11 @@
             // Hide spectator banner when game ends
             const spBanner = document.getElementById('spectator-banner');
             if (spBanner) spBanner.style.display = 'none';
+
+            // Bersihkan sisa rank/EXP card dari sesi sebelumnya jika custom room atau spectator
+            if (_isCustomRoom || _isSpectator) {
+                DOM.rankings.parentElement.querySelectorAll('.rank-change-card, .exp-change-card').forEach(el => el.remove());
+            }
 
             // Simpan rank sementara — server yang menyimpan ke Firebase secara utama.
             // Jika server gagal, server akan kirim SAVE_STATS_CLIENT dan client menjadi fallback.
@@ -11362,14 +11647,18 @@
                     grid.innerHTML = '';
                     const rates   = DL_RATES[level] || {};
                     const stock   = (gameState && gameState.rarityStock) || {};
+                    const resetRarity = (gameState && gameState.highestResetRarity) || null;
                     const maxRate = Math.max(...DL_LABELS.map(({ key }) => rates[key] || 0));
                     DL_LABELS.forEach(({ key, label, power }) => {
                         const row = document.createElement('div');
-                        const isTop = rates[key] === maxRate;
-                        row.className = 'dl-rate-row' + (isTop ? ' dl-rate-top' : '');
+                        const isTop   = rates[key] === maxRate;
+                        const isReset = (key === resetRarity);
+                        row.className = 'dl-rate-row' + (isTop ? ' dl-rate-top' : '') + (isReset ? ' dl-rate-reset' : '');
                         const s = stock[key];
                         const stockText = s ? `${s.remaining}/${s.total} kartu` : '—';
-                        row.innerHTML = `<span class="dl-rate-name">${label}${isTop ? ' <span class="dl-rate-top-badge">✦ Tertinggi</span>' : ''}</span><span class="dl-rate-power">⚡${power}</span><span class="dl-rate-pct">${rates[key]}%</span><span class="dl-rate-stock">📦 ${stockText}</span>`;
+                        const badges = (isTop   ? ' <span class="dl-rate-top-badge">✦ Tertinggi</span>'  : '')
+                                     + (isReset ? ' <span class="dl-rate-reset-badge">🔄 Reset Level</span>' : '');
+                        row.innerHTML = `<span class="dl-rate-name">${label}${badges}</span><span class="dl-rate-power">⚡${power}</span><span class="dl-rate-pct">${rates[key]}%</span><span class="dl-rate-stock">📦 ${stockText}</span>`;
                         grid.appendChild(row);
                     });
                 }
@@ -15208,10 +15497,40 @@ window.hideServerErrorPopup = function() {
         const isMatchmaking = !!(floatBar && floatBar.style.display !== 'none');
         const gameContainer = document.getElementById('game-container');
         const isGameActive  = !!(gameContainer && gameContainer.classList.contains('active'));
+        // [BUG FIX 2] matchmaking-screen bisa masih .active meskipun floatBar sudah di-hide
+        // (terjadi saat onerror memanggil hideMatchmakingFloatBar() sebelum showServerError).
+        // Tanpa cek ini, kondisi di bawah lolos → fn() → startMatchmaking() otomatis.
+        const mmScreen         = document.getElementById('matchmaking-screen');
+        const isMmScreenActive = !!(mmScreen && mmScreen.classList.contains('active'));
+        // Pastikan matchmaking-screen tidak aktif lagi supaya tidak dikira masih mencari lawan
+        if (mmScreen && !isMatchmaking) mmScreen.classList.remove('active');
 
-        if (!isInGame && !isMatchmaking && !isGameActive) {
-            // Di halaman home — jangan jalankan retryFn (yang bisa berisi startMatchmaking).
-            // Tetap cek koneksi dan beri feedback yang sesuai kepada user.
+        // [FIX] Satu-satunya kasus yang boleh diblokir di home adalah matchmaking —
+        // yaitu saat fn() akan memanggil startMatchmaking() secara otomatis tanpa sepengetahuan user.
+        // Kasus lain (Firebase disconnect, koneksi putus, reconnect game gagal) HARUS tetap menjalankan fn().
+        window._pendingReconnectRetry = false; // Reset flag reconnect game
+        const isMatchmakingRetry = (isMatchmaking || isMmScreenActive);
+
+        if (!isInGame && !isMatchmakingRetry && !isGameActive) {
+            // Bukan in-game dan bukan matchmaking — jalankan fn() langsung
+            // (ini mencakup: Firebase disconnect di home, koneksi putus di home, reconnect game gagal)
+            // [BUG FIX v8] Setelah fn() selesai (termasuk _reconnectHomeWs), pastikan tombol home tampil
+            fn();
+            setTimeout(() => {
+                const _gcCheck = document.getElementById('game-container');
+                const _msCheck = document.getElementById('matchmaking-screen');
+                const _stillInGame = _gcCheck && _gcCheck.classList.contains('active');
+                const _stillInMM   = _msCheck && _msCheck.classList.contains('active');
+                if (!_stillInGame && !_stillInMM && typeof showHomeButtons === 'function') {
+                    showHomeButtons();
+                }
+            }, 200);
+            return;
+        }
+
+        if (isMatchmakingRetry && !isInGame && !isGameActive) {
+            // Sedang matchmaking tapi koneksi putus — jangan auto-start matchmaking lagi,
+            // biarkan user klik PLAY sendiri
             setTimeout(async () => {
                 if (!navigator.onLine) {
                     showServerError(
@@ -15220,18 +15539,7 @@ window.hideServerErrorPopup = function() {
                     );
                     return;
                 }
-                if (typeof window._checkRealConnectivity === 'function') {
-                    const canReach = await window._checkRealConnectivity();
-                    if (!canReach) {
-                        showServerError(
-                            'Koneksi internet belum stabil.\nPastikan WiFi atau data seluler kamu aktif, lalu tekan Coba Lagi.',
-                            null
-                        );
-                        return;
-                    }
-                }
-                // Koneksi sudah kembali — beri tahu user untuk klik PLAY
-                if (typeof showToast === 'function') showToast('\u2705 Koneksi berhasil terhubung kembali!', 'success');
+                if (typeof showToast === 'function') showToast('\u2705 Koneksi kembali! Silakan tekan PLAY untuk mulai.', 'success');
             }, 50);
             return;
         }
@@ -15244,7 +15552,7 @@ window.hideServerErrorPopup = function() {
             if (typeof window._checkRealConnectivity === 'function') {
                 const canReach = await window._checkRealConnectivity();
                 if (!canReach) {
-                    if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay();
+                    if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay(true);
                     showServerError(
                         'Koneksi internet belum stabil.\nPastikan WiFi atau data seluler kamu aktif, lalu tekan Coba Lagi.',
                         fn
@@ -15258,14 +15566,22 @@ window.hideServerErrorPopup = function() {
 };
 
 // ── 2. OVERLAY RECONNECTING (blokir semua input saat proses reconnect) ──
+// [FIX] Flag kunci: overlay TIDAK boleh disembunyikan saat proses reconnect aktif
+window._reconnectingOverlayLocked = false;
+
 window._showReconnectingOverlay = function(pesan) {
     const ov  = document.getElementById('reconnecting-overlay');
     const msg = document.getElementById('reconnecting-msg');
     if (!ov) return;
     if (msg) msg.textContent = pesan || 'Harap tunggu, jangan tutup halaman ini.';
     ov.style.display = 'flex';
+    window._reconnectingOverlayLocked = true; // Kunci overlay selama reconnect
 };
-window._hideReconnectingOverlay = function() {
+window._hideReconnectingOverlay = function(force) {
+    // [FIX] Jika overlay sedang dikunci (proses reconnect aktif), jangan sembunyikan
+    // kecuali dipanggil dengan force=true (artinya reconnect benar-benar selesai/berhasil/gagal)
+    if (window._reconnectingOverlayLocked && !force) return;
+    window._reconnectingOverlayLocked = false;
     const ov = document.getElementById('reconnecting-overlay');
     if (ov) ov.style.display = 'none';
 };
@@ -15295,7 +15611,7 @@ function _startMatchmakingHeartbeat() {
                         ? 'Koneksi internet terputus (WiFi/data mati).\nPeriksa jaringanmu lalu coba lagi.'
                         : 'Koneksi ke server terputus saat mencari lawan.\nServer mungkin sedang bermasalah.',
                     () => {
-                        if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay();
+                        if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay(true);
                         if (!navigator.onLine) {
                             showServerError(
                                 'Koneksi internet masih terputus!\nNyalakan WiFi atau data seluler terlebih dahulu.',
@@ -15327,37 +15643,188 @@ function _stopMatchmakingHeartbeat() {
 }
 
 // ── 4. DETEKSI BROWSER OFFLINE (INSTAN saat WiFi/data dimatikan) ────
-window.addEventListener('offline', () => {
-    const inGame = !!window.currentRoomId;
-    _stopMatchmakingHeartbeat();
-    if (inGame) {
-        // Saat in-game: tampilkan overlay reconnecting (bukan popup), biarkan reconnectToGame handle
-        _showReconnectingOverlay('Koneksi internet terputus!\nMencoba menyambung kembali ke pertandingan...');
-    } else {
-        if (typeof cancelMatchmaking === 'function') cancelMatchmaking();
+// ── [BUG FIX] Reconnect WebSocket untuk konteks HOME / POPUP / LOBBY ────────
+// Dipanggil saat ws.onclose terjadi di luar game dan luar matchmaking.
+// Fungsi ini TIDAK masuk ke game — hanya menyambung ulang WS agar fitur
+// seperti party, custom room, find-room, dll kembali berfungsi.
+window._homeWsReconnectAttempts = 0;
+window._homeWsReconnectTimer    = null;
+const _HOME_WS_MAX = 3;
+
+function _reconnectHomeWs() {
+    if (window._homeWsReconnectAttempts >= _HOME_WS_MAX) {
+        window._homeWsReconnectAttempts = 0;
         showServerError(
-            'Koneksi internet terputus!\nWiFi atau data seluler kamu mati.\n\nNyalakan kembali koneksi lalu tekan Coba Lagi.',
-            () => {
-                if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay();
-                if (!navigator.onLine) {
+            'Gagal menyambung ke server setelah ' + _HOME_WS_MAX + ' percobaan.\n\nRefresh halaman untuk mencoba lagi.',
+            () => { location.reload(); }
+        );
+        return;
+    }
+    window._homeWsReconnectAttempts++;
+
+    // Tutup WS lama jika masih ada
+    if (typeof ws !== 'undefined' && ws) {
+        try { ws.onclose = null; ws.onerror = null; ws.onmessage = null; ws.close(); } catch(_e) {}
+        ws = null;
+    }
+
+    const _newWs = new WebSocket(typeof SERVER_URL !== 'undefined' ? SERVER_URL : (window.SERVER_URL || 'wss://card-game-kompe-production.up.railway.app'));
+    _newWs.onopen = () => {
+        ws = _newWs;
+        window._homeWsReconnectAttempts = 0;
+        if (window._homeWsReconnectTimer) { clearTimeout(window._homeWsReconnectTimer); window._homeWsReconnectTimer = null; }
+        // [BUG FIX v8] JANGAN auto-hide popup di sini — biarkan user klik "Coba Lagi" sendiri.
+        // Cukup update teks popup agar user tahu koneksi sudah kembali, lalu restore tombol home.
+        const _ep = document.getElementById('server-error-popup');
+        const _em = document.getElementById('server-error-msg');
+        if (_ep && _ep.style.display === 'flex') {
+            // Popup masih terbuka — update pesan, biarkan user klik Coba Lagi
+            if (_em) _em.textContent = 'Server berhasil terhubung kembali!\nTekan Coba Lagi untuk melanjutkan.';
+            window._serverErrorRetryFn = null; // Hapus retryFn lama agar klik Coba Lagi hanya tutup popup
+        } else {
+            // Tidak ada popup — sambung diam-diam, beri toast
+            showToast('✅ Berhasil terhubung kembali ke server!', 'success');
+        }
+        // Pastikan tombol home tetap tampil (tidak hilang akibat proses reconnect)
+        if (typeof showHomeButtons === 'function') {
+            const _gc = document.getElementById('game-container');
+            const _ms = document.getElementById('matchmaking-screen');
+            const _inGame = _gc && _gc.classList.contains('active');
+            const _inMM   = _ms && _ms.classList.contains('active');
+            if (!_inGame && !_inMM) showHomeButtons();
+        }
+        // Re-attach handler pesan standar
+        ws.onmessage = (ev) => { try { if (typeof handleServerMessage === 'function') handleServerMessage(JSON.parse(ev.data)); } catch(_e) {} };
+        ws.onclose = () => {
+            // Jika putus lagi di home, tampilkan toast ringan saja
+            if (!window.currentRoomId) {
+                showToast('⚠️ Koneksi ke server terputus. Cek internet kamu.', 'error');
+            }
+        };
+        ws.onerror = () => {};
+    };
+    _newWs.onerror = () => {
+        if (window._homeWsReconnectTimer) clearTimeout(window._homeWsReconnectTimer);
+        window._homeWsReconnectTimer = setTimeout(() => {
+            if (!navigator.onLine) {
+                showServerError(
+                    'Koneksi internet masih terputus!\nNyalakan WiFi atau data seluler, lalu tekan Coba Lagi.',
+                    null
+                );
+                return;
+            }
+            _reconnectHomeWs();
+        }, 3000);
+    };
+    _newWs.onclose = () => {
+        if (window._homeWsReconnectAttempts < _HOME_WS_MAX) {
+            if (window._homeWsReconnectTimer) clearTimeout(window._homeWsReconnectTimer);
+            window._homeWsReconnectTimer = setTimeout(_reconnectHomeWs, 3000);
+        }
+    };
+}
+
+// ── [FIX v14] POLLING KONEKSI DI HOME ────────────────────────────────────────
+// Hanya aktif setelah user sudah login & melewati loading screen
+(function _startHomeConnectivityWatcher() {
+    let _lastKnownOnline = true;
+    let _notifShown      = false;
+
+    setInterval(() => {
+        try {
+            // [FIX] Jangan jalankan saat firebase-loading atau pre-loading-screen masih aktif
+            const fl = document.getElementById('firebase-loading');
+            const pl = document.getElementById('pre-loading-screen');
+            const authSc = document.getElementById('auth-screen');
+            if (fl && fl.style.display !== 'none' && fl.style.opacity !== '0') return;
+            if (pl && pl.style.display !== 'none') return;
+            if (authSc && authSc.style.display !== 'none') return;
+
+            const inGame = !!(window.currentRoomId && window.myPlayerId);
+            if (inGame) { _lastKnownOnline = true; _notifShown = false; return; }
+
+            const nowOnline = navigator.onLine;
+
+            // Internet baru saja putus
+            if (_lastKnownOnline && !nowOnline && !_notifShown) {
+                _notifShown = true;
+                if (typeof showServerError === 'function') {
                     showServerError(
-                        'Koneksi internet masih terputus!\nWiFi atau data seluler kamu belum menyala.\n\nNyalakan koneksi terlebih dahulu, lalu tekan Coba Lagi.',
-                        null
+                        'Koneksi internet terputus!\nWiFi atau data seluler kamu mati.\n\nNyalakan kembali koneksi lalu tekan Coba Lagi.',
+                        () => {
+                            if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay(true);
+                            if (!navigator.onLine) {
+                                showServerError('Koneksi internet masih terputus!\nNyalakan WiFi atau data seluler terlebih dahulu, lalu tekan Coba Lagi.', null);
+                            } else {
+                                const _ep = document.getElementById('server-error-popup');
+                                if (_ep) _ep.style.display = 'none';
+                                if (typeof showToast === 'function') showToast('✅ Koneksi kembali! Silakan lanjutkan.', 'success');
+                                if (typeof _reconnectHomeWs === 'function') setTimeout(_reconnectHomeWs, 500);
+                            }
+                        }
                     );
-                } else {
-                    // [BUG FIX] Cek apakah user masih di layar matchmaking sebelum cari lawan otomatis
-                    const _fbOff = document.getElementById('matchmaking-float-bar');
-                    const _msOff = document.getElementById('matchmaking-screen');
-                    const _inMMOff = (_fbOff && _fbOff.style.display !== 'none')
-                                  || (_msOff && _msOff.classList.contains('active'));
-                    if (_inMMOff && typeof startMatchmaking === 'function') {
-                        startMatchmaking();
-                    }
-                    // Jika di halaman home, tidak melakukan apa-apa — user klik PLAY sendiri
                 }
             }
-        );
+
+            // Internet kembali
+            if (!_lastKnownOnline && nowOnline) {
+                _notifShown = false;
+                const _ep = document.getElementById('server-error-popup');
+                const _em = document.getElementById('server-error-msg');
+                if (_ep && _ep.style.display === 'flex' && _em &&
+                    (_em.textContent.includes('internet terputus') ||
+                     _em.textContent.includes('server terputus'))) {
+                    _em.textContent = 'Koneksi internet kembali!\nTekan Coba Lagi untuk melanjutkan.';
+                }
+                if (typeof showToast === 'function') showToast('✅ Koneksi internet kembali! Tekan Coba Lagi.', 'success');
+            }
+
+            _lastKnownOnline = nowOnline;
+        } catch(_e) {}
+    }, 5000);
+})();
+
+window.addEventListener('offline', () => {
+    const inGame = !!(window.currentRoomId && window.myPlayerId);
+    _stopMatchmakingHeartbeat();
+    if (inGame) {
+        // Saat in-game: overlay reconnecting sudah handle via ws.onclose / reconnectToGame
+        if (typeof window._showReconnectingOverlay === 'function')
+            window._showReconnectingOverlay('Koneksi internet terputus!\nMencoba menyambung kembali ke pertandingan...');
+        return;
     }
+
+    // Di luar game: batalkan matchmaking jika sedang jalan
+    if (typeof cancelMatchmaking === 'function') cancelMatchmaking();
+
+    // Jangan tampilkan popup dua kali jika sudah muncul (dari polling atau Firebase)
+    const _ep = document.getElementById('server-error-popup');
+    if (_ep && _ep.style.display === 'flex') return;
+
+    showServerError(
+        'Koneksi internet terputus!\nWiFi atau data seluler kamu mati.\n\nNyalakan kembali koneksi lalu tekan Coba Lagi.',
+        () => {
+            if (typeof window._hideReconnectingOverlay === 'function') window._hideReconnectingOverlay(true);
+            if (!navigator.onLine) {
+                showServerError(
+                    'Koneksi internet masih terputus!\nWiFi atau data seluler kamu belum menyala.\n\nNyalakan koneksi terlebih dahulu, lalu tekan Coba Lagi.',
+                    null
+                );
+            } else {
+                const _fbOff = document.getElementById('matchmaking-float-bar');
+                const _msOff = document.getElementById('matchmaking-screen');
+                const _inMMOff = (_fbOff && _fbOff.style.display !== 'none')
+                              || (_msOff && _msOff.classList.contains('active'));
+                if (_inMMOff && typeof startMatchmaking === 'function') {
+                    startMatchmaking();
+                } else {
+                    // [BUG FIX v8] Jangan auto-hide popup — _reconnectHomeWs jalan di background.
+                    // Popup akan update pesannya sendiri di onopen, lalu user klik Coba Lagi untuk tutup.
+                    if (typeof _reconnectHomeWs === 'function') setTimeout(_reconnectHomeWs, 500);
+                }
+            }
+        }
+    );
 });
 
 // [MOBILE FIX 5] Cek koneksi aktual ke server (bukan hanya navigator.onLine)
@@ -15366,7 +15833,7 @@ window._checkRealConnectivity = async function() {
     try {
         const ctrl = new AbortController();
         const tid  = setTimeout(() => ctrl.abort(), 4000);
-        const url  = (window.SERVER_URL || 'wss://server-card-game-nusantara-production-dc82.up.railway.app/')
+        const url  = (window.SERVER_URL || 'wss://card-game-kompe-production.up.railway.app')
             .replace('wss://', 'https://').replace('ws://', 'http://').replace(/\/$/, '');
         await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: ctrl.signal });
         clearTimeout(tid);
@@ -15377,23 +15844,38 @@ window._checkRealConnectivity = async function() {
 window.addEventListener('online', () => {
     const popup = document.getElementById('server-error-popup');
     const msg   = document.getElementById('server-error-msg');
-    // [BUG FIX] Saat internet kembali, JANGAN auto-eksekusi retryFn di halaman home.
-    // retryFn bisa berisi startMatchmaking() — user harus klik sendiri agar tidak kaget.
-    if (popup && popup.style.display === 'flex' && msg &&
-        msg.textContent.includes('internet terputus')) {
-        const isInGame      = !!(window.currentRoomId && window.myPlayerId);
-        const floatBar      = document.getElementById('matchmaking-float-bar');
-        const isMatchmaking = !!(floatBar && floatBar.style.display !== 'none');
+    const isInGame      = !!(window.currentRoomId && window.myPlayerId);
+    const floatBar      = document.getElementById('matchmaking-float-bar');
+    const mmScreen      = document.getElementById('matchmaking-screen');
+    const isMatchmaking = !!(floatBar && floatBar.style.display !== 'none')
+                        || !!(mmScreen && mmScreen.classList.contains('active'));
+
+    if (popup && popup.style.display === 'flex' && msg) {
+        // Ada popup error terbuka
         if (!isInGame && !isMatchmaking) {
-            // Di halaman home — update pesan saja, JANGAN tutup popup & jalankan retryFn
-            msg.textContent = 'Koneksi internet kembali!\nTekan Coba Lagi untuk melanjutkan.';
-            if (typeof showToast === 'function') showToast('\u2705 Koneksi internet kembali! Tekan Coba Lagi.', 'success');
-        } else {
-            // Sedang matchmaking — boleh tutup popup & lanjutkan
+            // Di home / popup / lobby — update teks, user tetap harus klik Coba Lagi
+            msg.textContent = 'Koneksi internet kembali!\nTekan Coba Lagi untuk menyambung ulang ke server.';
+            if (typeof showToast === 'function') showToast('✅ Koneksi internet kembali! Tekan Coba Lagi.', 'success');
+        } else if (isMatchmaking) {
+            // Sedang matchmaking — tutup popup & mulai ulang otomatis
             hideServerErrorPopup();
-            if (typeof showToast === 'function') showToast('\u2705 Koneksi internet kembali! Silakan coba lagi.', 'success');
+            if (typeof showToast === 'function') showToast('✅ Koneksi internet kembali! Mencari lawan kembali...', 'success');
+        }
+        // isInGame ditangani oleh reconnecting-overlay di bawah
+    } else if (!popup || popup.style.display !== 'flex') {
+        // [BUG FIX] Tidak ada popup, tapi WS mungkin sudah mati (offline event tidak terpanggil /
+        // WebSocket putus tanpa offline event). Cek kondisi WS dan tampilkan notifikasi jika perlu.
+        const wsAlive = typeof ws !== 'undefined' && ws
+                      && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING);
+        if (!wsAlive && !isInGame) {
+            // WS mati dan bukan in-game → sambung ulang diam-diam, beri toast ringkas
+            if (typeof showToast === 'function') showToast('✅ Koneksi internet kembali! Menyambung ulang ke server...', 'success');
+            setTimeout(() => {
+                if (typeof _reconnectHomeWs === 'function') _reconnectHomeWs();
+            }, 1500);
         }
     }
+
     // Jika in-game dan overlay reconnecting aktif, mulai ulang reconnect
     const ov = document.getElementById('reconnecting-overlay');
     if (ov && ov.style.display === 'flex' && window.currentRoomId && window.myPlayerId) {
@@ -15513,6 +15995,28 @@ async function _updateWinStreakAndTop1(position) {
         setTimeout(() => checkAndNotifyAchievements(), 1500);
     } catch(e) { console.warn('Streak update error:', e); }
 }
+
+// ─── PATCH: safety net — sembunyikan overlay "Menyambung Kembali" jika WS
+//     sudah OPEN dan game-container aktif tapi overlay masih terlihat.
+//     Ini handle edge case race-condition pasca reconnect WiFi/data. ────────────
+(function _reconnectOverlaySafetyNet() {
+    setInterval(() => {
+        try {
+            const ov = document.getElementById('reconnecting-overlay');
+            if (!ov || ov.style.display === 'none') return;
+            // [FIX] Jangan sembunyikan overlay jika proses reconnect sedang berjalan (locked)
+            if (window._reconnectingOverlayLocked) return;
+            const gc = document.getElementById('game-container');
+            const gameActive = gc && gc.classList.contains('active');
+            const wsOpen = typeof ws !== 'undefined' && ws && ws.readyState === WebSocket.OPEN;
+            if (gameActive && wsOpen) {
+                // Game berjalan normal tapi overlay masih tampil → sembunyikan
+                ov.style.display = 'none';
+                console.warn('[SafetyNet] Reconnecting overlay force-hidden: WS open + game active.');
+            }
+        } catch(_e) {}
+    }, 2000);
+})();
 
 // ─── PATCH: tangkap event STATS_SAVED / GAME_OVER untuk update streak ────────
 const _origWsMsg = typeof wsMessageHandler === 'function' ? wsMessageHandler : null;
