@@ -549,7 +549,7 @@
             flex-wrap: wrap; gap: 8px;
         }
         .player-stats { display: flex; gap: 12px; font-size: 0.95em; flex-wrap: wrap; align-items: center; }
-        .player-stat { background: rgba(0,0,0,0.3); padding: 5px 12px; border-radius: 15px; }
+        .player-stat { background: rgba(0,0,0,0.3); padding: 5px 12px; border-radius: 15px; line-height: 1.4; }
         .player-deck-container {
             flex: 1; overflow-y: auto; overflow-x: hidden;
             min-height: 200px;
@@ -796,7 +796,20 @@
         }
         button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.4); }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-draw { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .btn-draw {
+            background: linear-gradient(135deg, #c77ddb 0%, #e05a7a 50%, #f5576c 100%);
+            color: white;
+            border-radius: 15px !important;
+            padding: 8px 20px !important;
+            font-size: 0.9em !important;
+            font-weight: bold !important;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 14px rgba(240,80,120,0.35);
+            border: none;
+            min-width: 120px;
+            line-height: 1.4;
+            box-sizing: border-box;
+        }
 
         /* LOG AREA */
         .log-area {
@@ -1703,7 +1716,7 @@
         /* DRAW LEVEL POPUP */
         #draw-level-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.65); z-index: 31000;
+            background: rgba(0,0,0,0.65); z-index: 35000;
             align-items: center; justify-content: center;
         }
         #draw-level-overlay.active { display: flex; }
@@ -1784,12 +1797,27 @@
             border-radius: 6px; padding: 1px 6px; margin-left: 6px; white-space: nowrap;
         }
         .btn-dl-info {
-            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
-            color: #fff; border-radius: 8px; padding: 4px 7px;
-            font-size: 1.1em; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: background .15s; flex-shrink: 0; line-height: 1;
+            background: #7c5cbf;
+            border: 2px solid #e88aaa;
+            color: #f9b8d0;
+            border-radius: 12px;
+            padding: 3px 9px;
+            font-size: 0.95em;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0px;
+            transition: background .15s, box-shadow .15s, transform .15s;
+            flex-shrink: 0;
+            line-height: 1.4;
+            align-self: center;
+            box-shadow: 0 2px 8px rgba(100,60,180,0.3);
         }
-        .btn-dl-info:hover { background: rgba(255,255,255,0.28); }
+        .btn-dl-info .dl-info-icon { font-size: 0.95em; line-height: 1; display: block; }
+        .btn-dl-info .dl-info-lv   { font-size: 0.7em; font-weight: bold; color: #f0a8c8; line-height: 1; white-space: nowrap; }
+        .btn-dl-info:hover { background: #9268d4; box-shadow: 0 4px 12px rgba(120,80,200,0.5); transform: translateY(-1px); }
         .profile-empty { color: rgba(255,255,255,0.5); text-align: center; padding: 40px 0; font-size: 1em; }
         /* Rank display in profile */
         .profile-rank-section {
@@ -1913,6 +1941,43 @@
         .btn-fa-sent   { background: rgba(255,193,7,0.35); cursor: default; }
         .friend-pending { color: rgba(255,255,255,0.48); text-align: center; padding: 18px 0; font-size: 0.88em; }
 
+        /* ── ONLINE/OFFLINE SECTION DIVIDER ── */
+        .friend-status-section-title {
+            font-size: 0.78em; font-weight: bold; text-transform: uppercase;
+            letter-spacing: 1.2px; color: rgba(255,255,255,0.45);
+            padding: 10px 4px 5px; margin-top: 4px;
+            display: flex; align-items: center; gap: 7px;
+        }
+        .friend-status-section-title::after {
+            content: ''; flex: 1; height: 1px;
+            background: rgba(255,255,255,0.12);
+        }
+        .friend-online-dot {
+            width: 9px; height: 9px; border-radius: 50%;
+            background: #4caf50; flex-shrink: 0;
+            box-shadow: 0 0 6px rgba(76,175,80,0.8);
+            animation: onlinePulse 2s ease-in-out infinite;
+        }
+        .friend-offline-dot {
+            width: 9px; height: 9px; border-radius: 50%;
+            background: rgba(255,255,255,0.25); flex-shrink: 0;
+        }
+        @keyframes onlinePulse {
+            0%,100% { box-shadow: 0 0 5px rgba(76,175,80,0.8); }
+            50% { box-shadow: 0 0 10px rgba(76,175,80,1); }
+        }
+        .friend-status-badge {
+            font-size: 0.68em; font-weight: bold; padding: 2px 7px;
+            border-radius: 20px; margin-top: 3px; display: inline-block;
+        }
+        .friend-status-badge.online  { background: rgba(76,175,80,0.22); color: #81c784; }
+        .friend-status-badge.in-game { background: rgba(255,152,0,0.22); color: #ffb74d; }
+        .friend-status-badge.in-queue { background: rgba(33,150,243,0.22); color: #64b5f6; }
+        .friend-status-badge.offline { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.35); }
+        .friend-status-badge.in-lobby-ranked { background: rgba(233,30,99,0.22); color: #f48fb1; }
+        .friend-status-badge.in-lobby-custom { background: rgba(156,39,176,0.22); color: #ce93d8; }
+        .friend-card.friend-offline { opacity: 0.65; }
+
         /* Modal Lihat Profil Pemain (tidak dipakai lagi, diganti halaman penuh) */
         #view-profile-modal { display: none; }
 
@@ -1921,7 +1986,7 @@
             display: none; position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            z-index: 20000; flex-direction: row;
+            z-index: 38000; flex-direction: row;
         }
         #visit-profile-screen.active { display: flex; }
         #visit-profile-sidebar {
@@ -2244,7 +2309,7 @@
         /* ============================================ */
         #party-lobby-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.65); z-index: 20000;
+            background: rgba(0,0,0,0.65); z-index: 39000; /* [FIX] Dinaikkan ke 39000 agar tampil di atas visit-profile-screen (38000) */
             justify-content: center; align-items: center;
             -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
         }
@@ -2296,7 +2361,10 @@
         .party-slot-sub {
             color: rgba(255,255,255,0.6); font-size: 0.72em;
             text-align: center; margin-top: 2px;
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
         }
+        .party-slot-sub .rank-sub-img { width: 44px; height: 44px; object-fit: contain; display: block; }
+        .party-slot-sub .rank-sub-name { font-size: 0.85em; color: rgba(255,255,255,0.85); line-height: 1.2; }
         .party-slot-clear {
             position: absolute; top: 7px; right: 7px;
             background: rgba(244,67,54,0.75); border: none; color: #fff;
@@ -2332,10 +2400,11 @@
         }
         .party-friend-item:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.2); }
         .party-friend-avatar {
-            width: 30px; height: 30px; border-radius: 50%;
+            width: 40px; height: 40px; border-radius: 8px;
             background: rgba(255,255,255,0.2); display: flex;
             align-items: center; justify-content: center;
-            font-size: 0.95em; font-weight: 700; flex-shrink: 0;
+            font-size: 1.1em; font-weight: 700; flex-shrink: 0;
+            overflow: hidden;
         }
         .party-friend-name { font-size: 0.87em; font-weight: 600; }
         /* Action buttons */
@@ -2359,7 +2428,7 @@
         /* Party invite popup */
         #party-invite-popup {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.65); z-index: 21000;
+            background: rgba(0,0,0,0.65); z-index: 35000;
             justify-content: center; align-items: center;
             -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
         }
@@ -2399,7 +2468,7 @@
         /* Role picker overlay */
         #kostum-picker-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.72); z-index: 22000;
+            background: rgba(0,0,0,0.72); z-index: 35000;
             display: none; justify-content: center; align-items: center;
             -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
         }
@@ -2822,7 +2891,7 @@
         /* Custom room lobby */
         #custom-room-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.72); z-index: 22000;
+            background: rgba(0,0,0,0.72); z-index: 39000; /* [FIX] Dinaikkan ke 39000 agar selalu di atas achievement-screen (31000) dan semua overlay lain */
             display: none; justify-content: center; align-items: center;
             -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
         }
@@ -2890,6 +2959,21 @@
             color: #f44336; border-radius: 6px; padding: 2px 7px;
             cursor: pointer; font-size: 0.75em; font-family: inherit;
         }
+        /* [FIX] Rank badge selalu rata tengah & lebar konsisten di semua slot */
+        .custom-slot-rank {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 2px; flex-shrink: 0;
+            min-width: 54px; max-width: 54px; text-align: center;
+        }
+        .custom-slot-rank img {
+            width: 32px; height: 32px; object-fit: contain; display: block;
+            margin: 0 auto;
+        }
+        .custom-slot-rank span {
+            font-size: 0.62em; color: rgba(255,255,255,0.9);
+            white-space: nowrap; text-align: center;
+            display: block; width: 100%;
+        }
         .custom-friend-picker {
             background: rgba(0,0,0,0.3); border-radius: 12px;
             padding: 10px; margin-bottom: 14px; max-height: 180px; overflow-y: auto;
@@ -2925,7 +3009,7 @@
         /* Custom room invite popup */
         #custom-room-invite-popup {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.65); z-index: 23000;
+            background: rgba(0,0,0,0.65); z-index: 37000;
             display: none; justify-content: center; align-items: center;
             -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
         }
@@ -3112,7 +3196,7 @@
             border: 1.5px solid rgba(255,255,255,0.25);
             border-radius: 50px; padding: 10px 16px 10px 12px;
             display: none; align-items: center; gap: 9px;
-            z-index: 21500; cursor: pointer;
+            z-index: 39001; /* [FIX] Dinaikkan ke 39001 agar selalu tampil di atas achievement-screen dan custom-room-overlay */
             box-shadow: 0 6px 24px rgba(0,0,0,0.5);
             max-width: 230px; animation: bubbleIn 0.25s ease;
         }
@@ -3307,7 +3391,32 @@
         /* [MOBILE FIX 3] Touch-friendly: ganti onmouseover dengan :active */
         #server-error-retry-btn:hover, #server-error-retry-btn:active { transform:translateY(-2px); }
         #server-error-wa-btn:hover, #server-error-wa-btn:active { transform:translateY(-2px); }
+        @keyframes _pausePulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.75;transform:scale(0.97);} }
     </style>
+
+    <!-- ── GAME PAUSED OVERLAY ────────────────────────────────── -->
+    <div id="game-paused-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; min-height:100dvh;
+        background:rgba(0,0,0,0.7); z-index:99990;
+        justify-content:center; align-items:center;
+        backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px);
+        pointer-events:all;">
+        <div style="
+            background:linear-gradient(145deg,#1a1a2e 0%,#16213e 100%);
+            border:2px solid rgba(255,165,0,0.55); border-radius:24px;
+            padding:36px 40px; max-width:340px; width:88%; text-align:center;
+            box-shadow:0 20px 60px rgba(0,0,0,0.85);
+            animation:_sepopup 0.3s cubic-bezier(0.175,0.885,0.32,1.275) both;">
+            <div style="font-size:3em; margin-bottom:12px; animation:_pausePulse 1.5s ease-in-out infinite;">⏸️</div>
+            <div style="color:#ffb300; font-size:1.4em; font-weight:bold; margin-bottom:8px; text-shadow:0 2px 10px rgba(255,179,0,0.4);">
+                Pertandingan Dijeda
+            </div>
+            <p style="color:rgba(255,255,255,0.72); font-size:0.9em; line-height:1.6; margin:0;">
+                Host sedang menjeda pertandingan ini.<br>Tunggu hingga host melanjutkan kembali.
+            </p>
+        </div>
+    </div>
+    <!-- ─────────────────────────────────────────────────────── -->
+
     <!-- ════════════════════════════════════════════════════════ -->
 
     <!-- PROFILE BADGE (pojok kanan atas) -->
@@ -3664,6 +3773,8 @@
             </div>
             <div class="dl-section-title">Rate kartu level ini</div>
             <div class="dl-rate-grid" id="dl-rate-grid"></div>
+            <!-- Stok per provinsi disembunyikan dari pemain, data tetap diperbarui real-time di background -->
+            <div id="dl-province-stock" style="display:none;"></div>
         </div>
     </div>
 
@@ -4211,14 +4322,14 @@
                         <div class="player-controls-bar">
                             <div class="player-stat" style="flex-shrink:0;">📇 Kartu: <strong id="player-cards">0</strong></div>
                             <div class="player-stat" style="flex-shrink:0;">⚡ Power: <strong id="player-power">0</strong></div>
-                            <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+                            <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
                                 <button class="btn-draw" id="btn-draw" disabled>🎰 Draw Card</button>
-                                <button class="btn-dl-info" id="btn-draw-level-info" onclick="playSound('button');showDrawLevelInfo()" title="Info Draw Level">ℹ️</button>
+                                <button class="btn-dl-info" id="btn-draw-level-info" onclick="playSound('button');showDrawLevelInfo()" title="Info Draw Level"><span class="dl-info-icon">🎰</span><span class="dl-info-lv" id="dl-info-lv-label">Lv1</span></button>
                             </div>
-                            <div style="padding:8px 15px; background:rgba(255,255,255,0.2); border-radius:8px; flex-shrink:0;">
+                            <div style="padding:8px 15px; background:rgba(255,255,255,0.2); border-radius:8px; flex-shrink:0; line-height:1.4;">
                                 <span style="font-weight:bold; font-size:0.9em;">🎮 Ronde: <strong id="round-number">1</strong></span>
                             </div>
-                            <div style="padding:8px 15px; background:rgba(255,255,255,0.2); border-radius:8px; flex-shrink:0;">
+                            <div style="padding:8px 15px; background:rgba(255,255,255,0.2); border-radius:8px; flex-shrink:0; line-height:1.4;">
                                 <span style="font-weight:bold; font-size:0.9em;">🕹️ Tahap: <strong id="phase-name">1</strong></span>
                             </div>
                         </div>
@@ -4516,6 +4627,30 @@
             const t = ['Bronze','Silver','Gold','Diamond','Platinum'].find(x => rankName.startsWith(x));
             return t || 'Bronze';
         }
+
+        /**
+         * Hitung sort key untuk daftar teman & picker invite.
+         * Semakin KECIL nilainya → muncul LEBIH ATAS.
+         * Grup: 0=Online bebas, 1=Di Lobby, 2=Sedang Bermain, 3=Mencari Lawan, 4=Sudah diundang, 5=Offline
+         * Sub-sort: rank tinggi → rendah, lalu exp tinggi → rendah
+         */
+        function _friendSortKey(presInfo, rkName, expVal, isInvited) {
+            const rankIdx   = RANKS.indexOf(rkName || 'Bronze III');
+            const rankScore = 15 - (rankIdx >= 0 ? rankIdx : 0);
+            const lvlScore  = 1e9 - (typeof expVal === 'number' ? expVal : 0);
+            if (isInvited) return [4, rankScore, lvlScore];
+            const s = presInfo.status;
+            if (!presInfo.online)                                                     return [5, rankScore, lvlScore];
+            if (s === 'inLobbyRanked' || s === 'inLobbyCustom' || s === 'inLobby')   return [1, rankScore, lvlScore];
+            if (s === 'inGame')                                                        return [2, rankScore, lvlScore];
+            if (s === 'inQueue')                                                       return [3, rankScore, lvlScore];
+            return [0, rankScore, lvlScore];
+        }
+        function _cmpSortKey(ka, kb) {
+            for (let i = 0; i < ka.length; i++) { if (ka[i] !== kb[i]) return ka[i] - kb[i]; }
+            return 0;
+        }
+
         // Gambar rank: Bronze pakai Bronze.png, dst.
         // Platinum MAX pakai Platinum MAX.png (beda gambar)
         function rankImgSrc(rankName) {
@@ -5070,6 +5205,12 @@
                 'Platinum': ['#38bdf8', 'rgba(56,189,248,0.65)'],
             })[tier] || ['#cd7f32', 'rgba(205,127,50,0.55)'];
             return `border:3px solid ${c[0]};box-shadow:0 0 10px ${c[1]},0 0 20px ${c[1]};`;
+        }
+
+        // [FIX] Helper: render rank sub (gambar rank di atas, nama rank di bawah)
+        function _getRankSubHtml(rkName) {
+            if (!rkName) rkName = 'Bronze III';
+            return `<img class="rank-sub-img" src="${av('gambar/rank/'+getRankTier(rkName)+'.png')}" onerror="this.style.display='none'"><span class="rank-sub-name">${escHtml(rkName)}</span>`;
         }
 
         function _getAvatarWithFrameHtml(size) {
@@ -5967,6 +6108,23 @@
                     setTimeout(() => { _ps.style.display = 'none'; }, 500);
                     ws.onmessage = (ev) => { try { handleServerMessage(JSON.parse(ev.data)); } catch(e) {} };
                     if (data.players) endGame(data.players);
+                } else if (data.type === 'PROVINCES_SELECTED') {
+                    // [BUG FIX 3] Koneksi putus saat countdown provinsi (lawan sudah ditemukan).
+                    // Setelah reconnect berhasil, server kirim ulang PROVINCES_SELECTED dengan
+                    // remainingMs yang tersisa. Kita restart countdown & fallback timeout agar
+                    // pemain tetap bisa masuk ke pertandingan tanpa harus klik tombol apapun.
+                    reconnected.value = true;
+                    reconnectAttempts = 0;
+                    const _errPopupP = document.getElementById('server-error-popup');
+                    if (_errPopupP) _errPopupP.style.display = 'none';
+                    window._serverErrorRetryFn = null;
+                    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+                    _hideReconnectingOverlay();
+                    if (typeof showToast === 'function') showToast('\u2705 Berhasil terhubung kembali! Pertandingan segera dimulai...', 'success');
+                    // Teruskan ke handleServerMessage agar countdown provinsi di-restart
+                    // handleServerMessage sudah tahu cara render ulang layar PROVINCES_SELECTED
+                    ws.onmessage = (ev) => { try { handleServerMessage(JSON.parse(ev.data)); } catch(e) {} };
+                    handleServerMessage(data);
                 } else {
                     handleServerMessage(data);
                 }
@@ -6749,7 +6907,7 @@
         // =============================================
         // WEBSOCKET & GAME STATE
         // =============================================
-        const SERVER_URL = "wss://card-game-kompe-production.up.railway.app/";
+        const SERVER_URL = "wss://card-game-kompe-production.up.railway.app";
 
         let ws = null;
         let currentRoomId = null;
@@ -7455,7 +7613,7 @@
                 _selfCsRef.remove().catch(() => {});
                 // Kembalikan _partyId ke Firebase ID asli agar lobi party bisa berfungsi
                 if (_partyFirebaseId) _partyId = _partyFirebaseId;
-                _setPresenceStatus('inLobby');
+                _setPresenceStatus('inLobbyRanked');
                 // FIX: Tamu punya state lengkap (_partyHostUid, _partyHostName, _isPartyGuest)
                 // karena kita tidak reset saat masuk queue — render ulang lobi tamu dengan benar
                 if (_isPartyGuest && _partyHostUid && _partyHostName) {
@@ -7501,7 +7659,7 @@
                     _partyQueueSize = null;
                     // Kembalikan _partyId ke Firebase ID asli agar lobi berfungsi
                     if (_partyFirebaseId) _partyId = _partyFirebaseId;
-                    _setPresenceStatus('inLobby');
+                    _setPresenceStatus('inLobbyRanked');
                     // Jika tamu: render ulang tampilan lobi guest dengan data yang tersimpan
                     if (_isPartyGuest && _partyHostUid && _partyHostName) {
                         _showGuestPartyLobby(_partyHostUid, _partyHostName, _myPartySlot);
@@ -7809,6 +7967,11 @@
 
                 case 'GAME_STATE_UPDATE':
                     updateGameUI(data.state);
+                    // Sync isPaused state to pause button
+                    if (data.state && typeof data.state.isPaused !== 'undefined') {
+                        window._gamePaused = !!data.state.isPaused;
+                        _updatePauseButton();
+                    }
                     // Catat rank segera saat kita menang (misal menyerah),
                     // agar pendingClientSaveRank sudah siap sebelum SAVE_STATS_CLIENT tiba.
                     // Skip for custom room / spectator — no stats saving
@@ -7817,6 +7980,16 @@
                         if (_me && _me.winner && _me.rank > 0 && !_me.isBot) {
                             pendingClientSaveRank = _me.rank;
                         }
+                    }
+                    break;
+
+                case 'GAME_PAUSE_STATE':
+                    window._gamePaused = !!data.isPaused;
+                    _updatePauseButton();
+                    if (data.isPaused) {
+                        showToast('⏸️ Pertandingan dijeda oleh host', 'warning');
+                    } else {
+                        showToast('▶️ Pertandingan dilanjutkan', 'success');
                     }
                     break;
 
@@ -7882,7 +8055,13 @@
                 }
 
                 case 'LOG':
-                    if (data.message) addLog(data.message);
+                    if (data.message) {
+                        addLog(data.message);
+                        // Notifikasi khusus: kartu provinsi habis di kartu tersisa
+                        if (data.message.includes('pada kartu tersisa telah habis')) {
+                            showNotification(data.message.replace(/^🚫\s*/, '🚫 '));
+                        }
+                    }
                     break;
 
                 case 'ERROR':
@@ -7932,7 +8111,7 @@
                     stopMatchmakingCountdown();
                     _partyQueueSize = null;
                     if (_partyFirebaseId) _partyId = _partyFirebaseId;
-                    _setPresenceStatus('inLobby');
+                    _setPresenceStatus('inLobbyRanked');
                     if (_isPartyGuest && _partyHostUid && _partyHostName) {
                         _showGuestPartyLobby(_partyHostUid, _partyHostName, _myPartySlot);
                     } else {
@@ -8092,9 +8271,22 @@
             // All players in opponents panel (myPlayerId=null → all players shown, no self filter)
             updateBotsUI();
 
-            // Change "ANDA" header to "Penonton"
+            // Change "ANDA" header to "Penonton" + tombol Pause khusus host
             const hdr = document.getElementById('player-header-name');
-            if (hdr) hdr.textContent = '📺 Penonton';
+            if (hdr) {
+                const isHostSpectator = _isSpectator && _customRoomRole === 'penonton';
+                if (isHostSpectator) {
+                    // Tampilkan tombol pause di sebelah header
+                    const isPaused = !!window._gamePaused;
+                    hdr.innerHTML = '📺 Penonton &nbsp;<button id="btn-pause-host" onclick="window._togglePauseGame()" style="' +
+                        'padding:5px 14px; font-size:0.75em; font-weight:bold; border-radius:20px; border:2px solid rgba(255,255,255,0.7); cursor:pointer; ' +
+                        'background:' + (isPaused ? 'linear-gradient(135deg,#4caf50,#388e3c)' : 'linear-gradient(135deg,#ff9800,#e65100)') + '; ' +
+                        'color:#fff; box-shadow:0 3px 10px rgba(0,0,0,0.3); transition:all 0.2s; vertical-align:middle; display:inline-flex; align-items:center; gap:6px;">' +
+                        (isPaused ? '▶️ Lanjutkan' : '⏸️ Jeda') + '</button>';
+                } else {
+                    hdr.textContent = '📺 Penonton';
+                }
+            }
 
             // Hide Draw Card button and draw level info
             const btnDraw = document.getElementById('btn-draw');
@@ -8135,7 +8327,7 @@
                         const dlBtn = document.createElement('button');
                         dlBtn.className = 'btn-dl-info';
                         dlBtn.title = `Info Draw Level ${getBotDisplayName(p)}`;
-                        dlBtn.textContent = 'ℹ️';
+                        dlBtn.innerHTML = `<span class="dl-info-icon">🎰</span><span class="dl-info-lv">Lv${p.drawLevel || 1}</span>`;
                         dlBtn.addEventListener('click', () => { playSound('button'); showDrawLevelInfo(p.id); });
                         nameDiv.appendChild(dlBtn);
                     }
@@ -8915,14 +9107,60 @@
             const rankings = DOM.rankings;
             rankings.innerHTML = '';
             const medals = ['🥇 Juara 1', '🥈 Juara 2', '🥉 Juara 3', '💀 Kalah'];
+
+            // [CUSTOM MATCH] Tentukan siapa yang "kalah" berdasarkan jumlah pemain BERTANDING
+            // Aturan: pemain dengan rank tertinggi (terakhir selesai) dianggap kalah.
+            // - 3 pemain bertanding → #3 kalah; 2 pemain bertanding → #2 kalah
+            // PENONTON tidak dihitung — server tidak memasukkan spectator ke dalam finalRankings.
+            // Bot dan manusia sama-sama dihitung sebagai peserta bertanding.
+            // Ini hanya tampilan — TIDAK mempengaruhi rank, EXP, riwayat, atau statistik apapun.
+            let _customLoserRank = -1;
+            if (_isCustomRoom && finalRankings.length > 0) {
+                // finalRankings = hanya pemain bertanding (manusia + bot), penonton TIDAK ada di sini
+                const totalPlayers = finalRankings.length;
+                if (totalPlayers === 2) {
+                    _customLoserRank = 2;
+                } else if (totalPlayers >= 3) {
+                    _customLoserRank = Math.max(...finalRankings.map(p => p.rank));
+                }
+                // totalPlayers === 1: tidak ada yang kalah
+            }
+
             [...finalRankings].sort((a, b) => a.rank - b.rank).forEach(p => {
                 const div = document.createElement('div');
                 const isMe = myPlayerId ? p.id === myPlayerId : (myName && p.name === myName);
-                div.className = p.rank <= 3 ? 'ranking-item winner' : 'ranking-item loser';
+                // [CUSTOM MATCH] Pemain rank terakhir ditandai kalah, sisanya menang
+                const isCustomLoser = _isCustomRoom && p.rank === _customLoserRank && _customLoserRank > 0;
+                if (_isCustomRoom) {
+                    div.className = isCustomLoser ? 'ranking-item loser' : 'ranking-item winner';
+                } else {
+                    div.className = p.rank <= 3 ? 'ranking-item winner' : 'ranking-item loser';
+                }
                 if (isMe) div.style.cssText = 'outline: 2px solid #ffd700; outline-offset: 2px;';
-                div.textContent = `${medals[p.rank - 1] || '🎖️'} - ${getBotDisplayName(p)} (${p.hand ? p.hand.length : p.cardsLeft || 0} kartu tersisa)${isMe ? '  ← Kamu' : ''}`;
+                // Label tampilan khusus custom match
+                let label;
+                if (_isCustomRoom) {
+                    if (isCustomLoser) {
+                        label = `💀 Kalah (Peringkat ${p.rank})`;
+                    } else {
+                        label = medals[p.rank - 1] || `🎖️ Peringkat ${p.rank}`;
+                    }
+                    // Tambahkan catatan "Custom Match" agar tidak membingungkan
+                    div.textContent = `${label} - ${getBotDisplayName(p)} (${p.hand ? p.hand.length : p.cardsLeft || 0} kartu tersisa)${isMe ? '  ← Kamu' : ''}`;
+                } else {
+                    div.textContent = `${medals[p.rank - 1] || '🎖️'} - ${getBotDisplayName(p)} (${p.hand ? p.hand.length : p.cardsLeft || 0} kartu tersisa)${isMe ? '  ← Kamu' : ''}`;
+                }
                 rankings.appendChild(div);
             });
+
+            // [CUSTOM MATCH] Tampilkan banner info bahwa hasil tidak mempengaruhi statistik
+            if (_isCustomRoom) {
+                const infoBanner = document.createElement('div');
+                infoBanner.style.cssText = 'margin-top:12px;padding:8px 12px;border-radius:8px;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#c084fc;font-size:0.82em;text-align:center;';
+                infoBanner.textContent = '⚔️ Custom Match — Hasil ini tidak mempengaruhi rank, EXP, atau riwayat pertandingan.';
+                rankings.appendChild(infoBanner);
+            }
+
             modal.classList.add('active');
 
             // Hide spectator banner when game ends
@@ -9015,6 +9253,24 @@
 
             const medals = ['🥇 Juara 1', '🥈 Juara 2', '🥉 Juara 3', '🎖️ Peringkat 4'];
 
+            // [CUSTOM MATCH] Hitung pemain "kalah" — hanya dari pemain BERTANDING (bukan penonton)
+            // gameState.players dari server sudah tidak mengandung spectator (spectator disimpan terpisah)
+            // Tapi sebagai filter ganda: pastikan kita TIDAK menghitung pemain dengan rank === 0 yang belum selesai
+            let _cmLoserRank = -1;
+            if (_isCustomRoom && gameState.players.length > 0) {
+                // Pemain bertanding = semua yang ada di gameState.players (spectator tidak pernah masuk sini)
+                const activePlayers = gameState.players; // penonton tidak ada di sini
+                const total = activePlayers.length;
+                const finishedRanks = activePlayers.filter(p => p.winner && p.rank > 0).map(p => p.rank);
+                if (total === 2) {
+                    _cmLoserRank = 2;
+                } else if (total >= 3) {
+                    // Saat game selesai: ambil rank tertinggi dari yang sudah menang
+                    // Saat masih berlangsung: gunakan total sebagai perkiraan rank kalah
+                    _cmLoserRank = finishedRanks.length > 0 ? Math.max(...finishedRanks) : total;
+                }
+            }
+
             // Urutkan: yang sudah menang (berdasar rank), lalu yang masih main (kartu sedikit duluan)
             const sorted = [...gameState.players].sort((a, b) => {
                 if (a.winner && b.winner) return a.rank - b.rank;
@@ -9026,10 +9282,22 @@
             sorted.forEach(p => {
                 const div = document.createElement('div');
                 const isMe = p.id === myPlayerId;
-                const rankLabel = p.winner
-                    ? (medals[p.rank - 1] || `🎖️ Peringkat ${p.rank}`)
-                    : '⚔️ Masih bermain';
-                div.className = `ranking-item ${p.winner && p.rank <= 3 ? 'winner' : p.winner ? 'loser' : ''}`;
+                const isCustomLoser = _isCustomRoom && p.winner && p.rank === _cmLoserRank && _cmLoserRank > 0;
+                let rankLabel;
+                if (_isCustomRoom && p.winner) {
+                    rankLabel = isCustomLoser
+                        ? `💀 Kalah (Peringkat ${p.rank})`
+                        : (medals[p.rank - 1] || `🎖️ Peringkat ${p.rank}`);
+                } else {
+                    rankLabel = p.winner
+                        ? (medals[p.rank - 1] || `🎖️ Peringkat ${p.rank}`)
+                        : '⚔️ Masih bermain';
+                }
+                if (_isCustomRoom && p.winner) {
+                    div.className = `ranking-item ${isCustomLoser ? 'loser' : 'winner'}`;
+                } else {
+                    div.className = `ranking-item ${p.winner && p.rank <= 3 ? 'winner' : p.winner ? 'loser' : ''}`;
+                }
                 if (isMe) {
                     div.style.cssText = 'outline: 2px solid #ffd700; outline-offset:2px; background: linear-gradient(135deg,#fff9e6,#ffe082);';
                 }
@@ -9039,6 +9307,14 @@
                     + (isMe ? ' <span style="color:#e65100;font-weight:bold">← Kamu</span>' : '');
                 resultRankDiv.appendChild(div);
             });
+
+            // [CUSTOM MATCH] Banner info tidak ada efek statistik
+            if (_isCustomRoom) {
+                const cmBanner = document.createElement('div');
+                cmBanner.style.cssText = 'margin-top:10px;padding:7px 12px;border-radius:8px;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#c084fc;font-size:0.8em;text-align:center;';
+                cmBanner.textContent = '⚔️ Custom Match — Tidak mempengaruhi rank, EXP, atau riwayat.';
+                resultRankDiv.appendChild(cmBanner);
+            }
 
             resultStatsDiv.innerHTML = `
                 <span>📋 Ronde ke-${gameState.round}</span>&nbsp;&nbsp;|&nbsp;&nbsp;
@@ -9147,6 +9423,48 @@
             const list = document.getElementById('ping-list');
             if (list) list.innerHTML = '';
         }
+
+        // ── PAUSE GAME — khusus host penonton custom match ────────────────
+        window._gamePaused = false;
+
+        function _updatePauseButton() {
+            const isPaused = !!window._gamePaused;
+            // Update tombol pause untuk host penonton
+            const btn = document.getElementById('btn-pause-host');
+            if (btn) {
+                btn.innerHTML = isPaused ? '▶️ Lanjutkan' : '⏸️ Jeda';
+                btn.style.background = isPaused
+                    ? 'linear-gradient(135deg,#4caf50,#388e3c)'
+                    : 'linear-gradient(135deg,#ff9800,#e65100)';
+                btn.title = isPaused ? 'Klik untuk melanjutkan pertandingan' : 'Klik untuk menjeda pertandingan';
+            }
+            // Tampilkan/sembunyikan overlay paused untuk SEMUA pemain & penonton
+            const overlay = document.getElementById('game-paused-overlay');
+            if (overlay) {
+                // Jangan tampilkan overlay ke host penonton (dia sudah tahu)
+                const isHostSpec = _isSpectator && _customRoomRole === 'penonton';
+                overlay.style.display = (isPaused && !isHostSpec) ? 'flex' : 'none';
+            }
+        }
+
+        window._togglePauseGame = function() {
+            playSound('button');
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                showToast('❌ Koneksi ke server terputus', 'error');
+                return;
+            }
+            const userUid = currentUser ? currentUser.uid : (lsGet(LS.USER_UID) || '');
+            if (!userUid) {
+                showToast('❌ Tidak dapat mengidentifikasi pengguna', 'error');
+                return;
+            }
+            try {
+                ws.send(JSON.stringify({ type: 'PAUSE_GAME', userUid }));
+            } catch(e) {
+                showToast('❌ Gagal mengirim perintah pause', 'error');
+            }
+        };
+        // ── END PAUSE GAME ────────────────────────────────────────────────
 
         function goToHome() {
             if (goToHomeInProgress) return; // guard double-click
@@ -9449,14 +9767,28 @@
             const notifText = document.getElementById('player-turn-notification-text');
             if (gameState.forcePickProcessing || player.mustForcePick) {
                 notification.style.display = 'none';
+            } else if (player.mustPlayMatching && !player.hasPlayed) {
+                notifText.textContent = '✅ Kartu cocok ditemukan! Jatuhkan kartu tersebut!';
+                notification.style.display = 'block';
+                notification.style.background = 'linear-gradient(135deg, #43e97b, #38f9d7)';
+                notification.style.color = '#1a4a2a';
             } else if (gameState.phase === 1 && gameState.phase1Player === player.id && !player.hasPlayed) {
                 notifText.textContent = '✅ Pilih Bebas kartu di bawah';
                 notification.style.display = 'block';
+                notification.style.background = '#4caf50';
+                notification.style.border = '2px solid #2e7d32';
+                notification.style.color = '#fff';
             } else if (gameState.phase === 2 && !player.hasPlayed && !player.mustDraw && !player.mustForcePick && hasMatchingCard) {
                 notifText.textContent = '✅ Pilih kartu di bawah Dari Provinsi Yang Sama';
                 notification.style.display = 'block';
+                notification.style.background = '#4caf50';
+                notification.style.border = '2px solid #2e7d32';
+                notification.style.color = '#fff';
             } else {
                 notification.style.display = 'none';
+                notification.style.background = '#4caf50';
+                notification.style.border = '2px solid #2e7d32';
+                notification.style.color = '#fff';
             }
 
             updateTopCardsUI();
@@ -9590,10 +9922,11 @@
 
                 // 3. Update interaktivitas
                 const isPhase1Turn = gameState.phase === 1 && gameState.phase1Player === player.id && !player.hasPlayed && !player.isProcessingAction;
-                const isPhase2Turn = gameState.phase === 2 && !player.hasPlayed && !player.mustDraw && !player.mustForcePick && !player.isProcessingAction;
+                const isPhase2Turn = gameState.phase === 2 && !player.hasPlayed && !player.mustDraw && !player.mustForcePick && !player.mustPlayMatching && !player.isProcessingAction;
+                const isMustPlay   = gameState.phase === 2 && player.mustPlayMatching && !player.hasPlayed && !player.isProcessingAction;
                 const matchesProvince = card.province === gameState.currentProvince;
 
-                const shouldBeSelectable = (isPhase1Turn) || (isPhase2Turn && matchesProvince);
+                const shouldBeSelectable = (isPhase1Turn) || (isPhase2Turn && matchesProvince) || (isMustPlay && matchesProvince);
                 const alreadySelectable = existing.classList.contains('selectable');
 
                 if (!shouldBeSelectable) {
@@ -9606,6 +9939,20 @@
                     existing.classList.remove('disabled', 'locked');
                     existing.style.cursor = 'pointer';
                     existing.onclick = (e) => { e.stopPropagation(); playerPlayPhase1(card); };
+                } else if (isMustPlay && matchesProvince) {
+                    // Wajib jatuhkan kartu cocok setelah draw berhasil
+                    if (!alreadySelectable) existing.classList.add('selectable');
+                    existing.classList.remove('disabled', 'locked');
+                    existing.style.cursor = 'pointer';
+                    existing.style.outline = '3px solid #43e97b';
+                    existing.onclick = (e) => { e.stopPropagation(); playerPlayCard(card); };
+                } else if (isMustPlay && !matchesProvince) {
+                    existing.classList.add('disabled');
+                    existing.style.cursor = 'not-allowed';
+                    existing.onclick = (e) => {
+                        e.stopPropagation();
+                        addLog(`❌ Anda harus menjatuhkan kartu dari provinsi ${gameState.currentProvince}!`);
+                    };
                 } else if (isPhase2Turn && matchesProvince) {
                     if (!alreadySelectable) existing.classList.add('selectable');
                     existing.classList.remove('disabled', 'locked');
@@ -9627,6 +9974,7 @@
                         e.stopPropagation();
                         if (player.hasPlayed) addLog('❌ Anda sudah bermain di ronde ini!');
                         else if (player.mustDraw) addLog('❌ Anda harus Draw Card terlebih dahulu!');
+                        else if (player.mustPlayMatching) addLog('✅ Pilih kartu hijau yang cocok untuk dijatuhkan!');
                         else if (player.mustForcePick) addLog('⏳ Tunggu proses Ambil Kartu selesai!');
                         else addLog('❌ Kartu tidak bisa dimainkan saat ini!');
                     };
@@ -9735,8 +10083,29 @@
             const player = gameState.players.find(p => p.id === myPlayerId);
             if (!player) return;
 
-            btnDraw.disabled = !player.mustDraw || player.hasPlayed;
+            btnDraw.disabled = (!player.mustDraw && !player.mustPlayMatching) || player.hasPlayed;
             btnDraw.onclick  = player.mustDraw ? playerDrawCard : null;
+
+            // Ubah label tombol sesuai state
+            const btnDrawIcon = btnDraw.querySelector ? null : null;
+            if (player.mustPlayMatching && !player.hasPlayed) {
+                btnDraw.innerHTML = '✅ Jatuhkan Kartu Cocok!';
+                btnDraw.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+                btnDraw.style.color = '#1a4a2a';
+                btnDraw.disabled = true; // kartu dijatuhkan lewat klik kartu di deck
+            } else if (player.mustDraw && !player.hasPlayed) {
+                btnDraw.innerHTML = '🎰 Draw Card';
+                btnDraw.style.background = '';
+                btnDraw.style.color = '';
+            } else {
+                btnDraw.innerHTML = '🎰 Draw Card';
+                btnDraw.style.background = '';
+                btnDraw.style.color = '';
+            }
+
+            // Update Lv label on info button
+            const _lvLabel = document.getElementById('dl-info-lv-label');
+            if (_lvLabel) _lvLabel.textContent = 'Lv' + (player.drawLevel || 1);
 
             if (player.winner) {
                 // Sudah selesai (menang atau menyerah) → sembunyikan surrender, tampilkan hasil
@@ -9845,6 +10214,7 @@
         function hideTemanScreen() {
             document.getElementById('teman-screen').style.display = 'none';
             restoreBodyOverflow();
+            _detachFriendsPresenceListener();
         }
 
         function switchProfileTab(tab) {
@@ -10354,6 +10724,7 @@
                     db.ref(`users/${currentUser.uid}/friends/${friendUid}`).remove(),
                     db.ref(`users/${friendUid}/friends/${currentUser.uid}`).remove()
                 ]);
+                _detachFriendsPresenceListener();
                 loadFriendsTab();
             } catch(e) {}
         }
@@ -10400,12 +10771,107 @@
             }
         }
 
-        // Load daftar teman
+        // ── Real-time presence listener untuk daftar teman ──
+        let _friendsPresenceRef  = null;
+        let _friendsPresenceFn   = null;
+        let _friendsProfileCache = {};
+
+        function _detachFriendsPresenceListener() {
+            if (_friendsPresenceRef && _friendsPresenceFn) {
+                _friendsPresenceRef.off('value', _friendsPresenceFn);
+            }
+            _friendsPresenceRef = null;
+            _friendsPresenceFn  = null;
+        }
+
+        function _renderFriendsListFromCache(presenceAll) {
+            const el      = document.getElementById('friends-list');
+            const countEl = document.getElementById('friends-count');
+            if (!el) return;
+
+            const profiles = Object.values(_friendsProfileCache);
+            countEl.textContent = `(${profiles.length})`;
+
+            function _statusLabel(info) {
+                if (!info.online) return '<span class="friend-status-badge offline">⚫ Offline</span>';
+                if (info.status === 'inGame')        return '<span class="friend-status-badge in-game">🎮 Sedang Bermain</span>';
+                if (info.status === 'inQueue')        return '<span class="friend-status-badge in-queue">🔍 Mencari Lawan</span>';
+                if (info.status === 'inLobbyRanked') return '<span class="friend-status-badge in-lobby-ranked">🏆 Di Lobby Ranked</span>';
+                if (info.status === 'inLobbyCustom') return '<span class="friend-status-badge in-lobby-custom">⚔️ Di Lobby Custom</span>';
+                if (info.status === 'inLobby')        return '<span class="friend-status-badge in-queue">🏠 Di Lobby</span>';
+                return '<span class="friend-status-badge online">🟢 Online</span>';
+            }
+
+            function _renderCard(f, info) {
+                const offlineCls = info.online ? '' : ' friend-offline';
+                const rkName   = f.rkName || f.rankData?.rankName || 'Bronze III';
+                const avNum    = f.avNum || '7';
+                const rkTier   = getRankTier(rkName);
+                const fStyle   = _getRankFrameStyle(rkName);
+                const initChar = escHtml((f.nickname||'?').charAt(0).toUpperCase());
+                const avatarHtml = `<div style="width:46px;height:46px;border-radius:8px;overflow:hidden;${fStyle}display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:linear-gradient(135deg,#f093fb,#f5576c);font-size:1.2em;font-weight:bold;color:white;"><img src="${av('gambar/avatar/avatar'+avNum+'.png')}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none';this.parentElement.textContent='${initChar}'"></div>`;
+                const rkBadgeHtml = `<div style="display:flex;align-items:center;gap:3px;margin-top:2px;"><img src="${av('gambar/rank/'+rkTier+'.png')}" style="width:14px;height:14px;object-fit:contain;" onerror="this.style.display='none'"><span style="font-size:0.72em;color:rgba(255,255,255,0.65);">${escHtml(rkName)}</span></div>`;
+                return `
+                <div class="friend-card${offlineCls}">
+                    ${avatarHtml}
+                    <div class="friend-info">
+                        <div class="friend-name">${escHtml(f.nickname || 'Unknown')}</div>
+                        <div class="friend-id">#${f.uid.slice(-6).toUpperCase()}</div>
+                        ${_statusLabel(info)}
+                        ${rkBadgeHtml}
+                    </div>
+                    <div class="friend-actions">
+                        <button class="btn-fa btn-fa-visit" onclick="playSound('button');visitPlayerProfile('${f.uid}')">🌿 Kunjungi</button>
+                        <button class="btn-fa btn-fa-remove" onclick="playSound('button');removeFriend('${f.uid}')" title="Hapus teman">🗑</button>
+                    </div>
+                </div>`;
+            }
+
+            // Pisahkan online vs offline, lalu sort tiap grup
+            const withInfo = profiles.map(f => ({
+                f,
+                info: _getPresenceInfo(presenceAll ? presenceAll[f.uid] : null)
+            }));
+            const onlineFriends  = withInfo.filter(x => x.info.online);
+            const offlineFriends = withInfo.filter(x => !x.info.online);
+
+            // Sort online: Online bebas (rank↓ lv↓) → Di Lobby → Bermain → Mencari Lawan
+            onlineFriends.sort((a, b) => _cmpSortKey(
+                _friendSortKey(a.info, a.f.rkName || a.f.rankData?.rankName, a.f.playerExp, false),
+                _friendSortKey(b.info, b.f.rkName || b.f.rankData?.rankName, b.f.playerExp, false)
+            ));
+            // Sort offline: rank tinggi → rendah, lalu level tinggi → rendah
+            offlineFriends.sort((a, b) => _cmpSortKey(
+                _friendSortKey(a.info, a.f.rkName || a.f.rankData?.rankName, a.f.playerExp, false),
+                _friendSortKey(b.info, b.f.rkName || b.f.rankData?.rankName, b.f.playerExp, false)
+            ));
+
+            let html = '';
+            html += `<div class="friend-status-section-title"><span class="friend-online-dot"></span>Online (${onlineFriends.length})</div>`;
+            if (onlineFriends.length === 0) {
+                html += '<div class="friend-pending" style="padding:10px 0 6px;">Tidak ada teman yang sedang online.</div>';
+            } else {
+                html += onlineFriends.map(({ f, info }) => _renderCard(f, info)).join('');
+            }
+            html += `<div class="friend-status-section-title" style="margin-top:10px;"><span class="friend-offline-dot"></span>Offline (${offlineFriends.length})</div>`;
+            if (offlineFriends.length === 0) {
+                html += '<div class="friend-pending" style="padding:10px 0 6px;">Tidak ada teman yang offline.</div>';
+            } else {
+                html += offlineFriends.map(({ f, info }) => _renderCard(f, info)).join('');
+            }
+            el.innerHTML = html;
+        }
+
+        // Load daftar teman dengan real-time presence
         async function loadFriendsList() {
             if (!currentUser) return;
-            const el       = document.getElementById('friends-list');
-            const countEl  = document.getElementById('friends-count');
+            const el      = document.getElementById('friends-list');
+            const countEl = document.getElementById('friends-count');
             el.innerHTML = '<div class="friend-pending">⏳ Memuat...</div>';
+
+            _detachFriendsPresenceListener();
+            _friendsProfileCache = {};
+
             try {
                 const snap = await db.ref(`users/${currentUser.uid}/friends`).get();
                 if (!snap.exists()) {
@@ -10414,24 +10880,48 @@
                     return;
                 }
                 const uids = Object.keys(snap.val());
-                countEl.textContent = `(${uids.length})`;
-
                 const profiles = await Promise.all(
-                    uids.map(uid => db.ref(`users/${uid}`).get().then(s => s.exists() ? { uid, ...s.val() } : { uid, nickname: 'Unknown' }))
+                    uids.map(async uid => {
+                        try {
+                            const [userSnap, avSnap] = await Promise.all([
+                                db.ref(`users/${uid}`).get(),
+                                db.ref(`userAvatars/${uid}`).get()
+                            ]);
+                            const userData = userSnap.exists() ? { uid, ...userSnap.val() } : { uid, nickname: 'Unknown' };
+                            userData.avNum = avSnap.exists() ? String(avSnap.val()) : '7';
+                            userData.rkName = userData.rankData?.rankName || 'Bronze III';
+                            return userData;
+                        } catch(e) {
+                            return { uid, nickname: 'Unknown', avNum: '7', rkName: 'Bronze III' };
+                        }
+                    })
                 );
+                profiles.forEach(p => { _friendsProfileCache[p.uid] = p; });
 
-                el.innerHTML = profiles.map(f => `
-                    <div class="friend-card">
-                        <div class="friend-avatar">${escHtml((f.nickname||'?').charAt(0).toUpperCase())}</div>
-                        <div class="friend-info">
-                            <div class="friend-name">${escHtml(f.nickname || 'Unknown')}</div>
-                            <div class="friend-id">#${f.uid.slice(-6).toUpperCase()}</div>
-                        </div>
-                        <div class="friend-actions">
-                            <button class="btn-fa btn-fa-visit" onclick="playSound('button');visitPlayerProfile('${f.uid}')">🌿 Kunjungi</button>
-                            <button class="btn-fa btn-fa-remove" onclick="playSound('button');removeFriend('${f.uid}')" title="Hapus teman">🗑</button>
-                        </div>
-                    </div>`).join('');
+                _renderFriendsListFromCache(null);
+
+                // ── Real-time listener per-uid ──
+                let presenceAll = {};
+                let pendingRender = false;
+                function scheduleRender() {
+                    if (pendingRender) return;
+                    pendingRender = true;
+                    setTimeout(() => { pendingRender = false; _renderFriendsListFromCache(presenceAll); }, 200);
+                }
+
+                const perUidRefs = [];
+                uids.forEach(uid => {
+                    const ref = db.ref(`presence/${uid}`);
+                    const fn  = ref.on('value', snap => {
+                        presenceAll[uid] = snap.exists() ? snap.val() : null;
+                        scheduleRender();
+                    });
+                    perUidRefs.push({ ref, fn });
+                });
+
+                _friendsPresenceFn  = () => {};
+                _friendsPresenceRef = { off: () => { perUidRefs.forEach(({ ref, fn }) => ref.off('value', fn)); } };
+
             } catch(e) {
                 el.innerHTML = '<div class="friend-pending">❌ Gagal memuat daftar teman.</div>';
             }
@@ -10444,6 +10934,18 @@
         let _visitListeners = { rankData: null, stats: null, history: null, playerExp: null };
 
         async function visitPlayerProfile(uid) {
+            // [FIX] Auto-minimize ranked party lobby jika sedang terbuka
+            const partyOverlay = document.getElementById('party-lobby-overlay');
+            const partyCard = document.querySelector('#party-lobby-overlay .party-lobby-card');
+            if (partyOverlay && partyCard && partyOverlay.style.display !== 'none' && partyCard.style.display !== 'none') {
+                minimizePartyLobby();
+            }
+            // [FIX] Auto-minimize custom room lobby jika sedang terbuka
+            const customOverlay = document.getElementById('custom-room-overlay');
+            const customCard = document.querySelector('#custom-room-overlay .custom-room-card');
+            if (customOverlay && customCard && customOverlay.style.display !== 'none' && customCard.style.display !== 'none') {
+                minimizeCustomRoom();
+            }
             _visitUid = uid;
             document.getElementById('visit-profile-screen').classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -10890,6 +11392,26 @@
                 }
 
                 document.getElementById('draw-level-overlay').classList.add('active');
+
+                // Render stok per provinsi di drawPile
+                const provStockEl = document.getElementById('dl-province-stock');
+                if (provStockEl) {
+                    provStockEl.innerHTML = '';
+                    const provinceStock = (gameState && gameState.provinceStock) || {};
+                    const currentProv = gameState && gameState.currentProvince;
+                    const entries = Object.entries(provinceStock).sort((a, b) => b[1] - a[1]);
+                    if (entries.length === 0) {
+                        provStockEl.innerHTML = '<span style="color:#f87171;font-size:0.85em;">Kartu tersisa habis</span>';
+                    } else {
+                        entries.forEach(([prov, count]) => {
+                            const chip = document.createElement('div');
+                            const isActive = prov === currentProv;
+                            chip.style.cssText = `display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:0.78em;font-weight:600;background:${isActive ? 'rgba(251,191,36,0.25)' : 'rgba(255,255,255,0.08)'};border:1px solid ${isActive ? '#fbbf24' : 'rgba(255,255,255,0.15)'};color:${isActive ? '#fcd34d' : 'rgba(255,255,255,0.8)'}`;
+                            chip.innerHTML = `${isActive ? '🎯 ' : ''}${prov} <span style="color:#34d399;font-weight:800;">${count}</span>`;
+                            provStockEl.appendChild(chip);
+                        });
+                    }
+                }
             } catch (e) {
                 console.error('[showDrawLevelInfo] Error saat render popup:', e);
                 // Tetap tampilkan overlay meskipun render parsial gagal
@@ -11106,7 +11628,11 @@
             document.getElementById('custom-lobby-bubble').style.display = 'flex';
         }
         function restoreCustomRoom() {
+            // [FIX v13] JANGAN tutup halaman pencapaian atau screen lain.
+            // custom-room-overlay (z-index:39000) lebih tinggi dari achievement-screen (z-index:31000),
+            // jadi cukup tampilkan overlay-nya dan ia otomatis muncul di depan halaman pencapaian.
             const ov = document.getElementById('custom-room-overlay');
+            ov.style.display = 'flex';
             ov.style.background = '';
             ov.style.backdropFilter = '';
             ov.style.webkitBackdropFilter = '';
@@ -11175,9 +11701,12 @@
             const name = currentNickname || lsGet(LS.NICKNAME) || 'Kamu';
             document.getElementById('pslot-1-name').textContent = name;
             document.getElementById('pslot-1-icon').innerHTML = _getAvatarWithFrameHtml(54);
+            // Tampilkan rank image + nama rank di slot 1
+            const pslot1Sub = document.getElementById('pslot-1-sub');
+            if (pslot1Sub) pslot1Sub.innerHTML = _getRankSubHtml(_cachedRankName || 'Bronze III');
             // Tampilkan overlay
             document.getElementById('party-lobby-overlay').style.display = 'flex';
-            _setPresenceStatus('inLobby');
+            _setPresenceStatus('inLobbyRanked');
         }
 
         function closePartyLobby(keepPartyId = false, enteringQueue = false) {
@@ -11278,18 +11807,42 @@
                 }
                 const friends = snap.val();
                 const uids = Object.keys(friends);
-                // Fetch semua nickname sekali
-                const profiles = await Promise.all(uids.map(uid =>
-                    db.ref(`users/${uid}/nickname`).get().then(s => ({ uid, nickname: s.val() || 'Unknown' }))
-                ));
 
-                // Fungsi render menggunakan data presence terbaru
+                // [FIX] Fetch nickname + avatar + rank SEKALIGUS sebelum render, simpan di cache per-uid
+                // Ini menghindari race condition: presence listener render ulang DOM → elemen lama hilang
+                // → async fetch selesai tapi getElementById sudah tidak ketemu elemen baru
+                const _pflCache = {}; // uid → { nickname, avNum, rkName }
+                await Promise.all(uids.map(async uid => {
+                    try {
+                        const [nickSnap, avSnap, rkSnap, expSnap] = await Promise.all([
+                            db.ref(`users/${uid}/nickname`).get(),
+                            db.ref(`userAvatars/${uid}`).get(),
+                            db.ref(`users/${uid}/rankData`).get(),
+                            db.ref(`users/${uid}/playerExp`).get()
+                        ]);
+                        _pflCache[uid] = {
+                            nickname: nickSnap.val() || 'Unknown',
+                            avNum: avSnap.exists() ? String(avSnap.val()) : '7',
+                            rkName: rkSnap.exists() ? (rkSnap.val().rankName || 'Bronze III') : 'Bronze III',
+                            expVal: expSnap.exists() ? (expSnap.val() || 0) : 0
+                        };
+                    } catch(e) {
+                        _pflCache[uid] = { nickname: 'Unknown', avNum: '7', rkName: 'Bronze III', expVal: 0 };
+                    }
+                }));
+
+                const profiles = uids.map(uid => ({ uid, ..._pflCache[uid] }));
+
+                // Fungsi render — semua data sudah tersedia, langsung inject ke HTML tanpa async lagi
                 function renderWithPresence(presence) {
                     const alreadyInvited = [_partyFriendUid, _partyFriend2Uid].filter(Boolean);
                     const sorted = [...profiles].sort((a, b) => {
-                        const aOk = _getPresenceInfo(presence[a.uid]).online && !_getPresenceInfo(presence[a.uid]).status && !alreadyInvited.includes(a.uid) ? 0 : 1;
-                        const bOk = _getPresenceInfo(presence[b.uid]).online && !_getPresenceInfo(presence[b.uid]).status && !alreadyInvited.includes(b.uid) ? 0 : 1;
-                        return aOk - bOk;
+                        const aInfo = _getPresenceInfo(presence[a.uid]);
+                        const bInfo = _getPresenceInfo(presence[b.uid]);
+                        return _cmpSortKey(
+                            _friendSortKey(aInfo, a.rkName, a.expVal, alreadyInvited.includes(a.uid)),
+                            _friendSortKey(bInfo, b.rkName, b.expVal, alreadyInvited.includes(b.uid))
+                        );
                     });
                     if (!sorted.length) {
                         el.innerHTML = '<div style="color:rgba(255,255,255,0.5);font-size:0.85em;">Belum ada teman.</div>';
@@ -11307,18 +11860,30 @@
                             statusLabel = '🎮 Sedang bermain'; statusColor = 'rgba(244,67,54,0.9)';
                         } else if (presInfo.status === 'inQueue') {
                             statusLabel = '🔍 Mencari lawan'; statusColor = 'rgba(255,193,7,0.9)';
+                        } else if (presInfo.status === 'inLobbyRanked') {
+                            statusLabel = '🏆 Di Lobby Ranked'; statusColor = 'rgba(255,193,7,0.9)';
+                        } else if (presInfo.status === 'inLobbyCustom') {
+                            statusLabel = '⚔️ Di Lobby Custom'; statusColor = 'rgba(206,147,216,0.9)';
                         } else if (presInfo.status === 'inLobby') {
                             statusLabel = '🚪 Sedang di lobby'; statusColor = 'rgba(255,193,7,0.9)';
                         } else {
                             canInvite = true; statusLabel = '🟢 Online'; statusColor = 'rgba(76,175,80,0.9)';
                         }
+                        const init = escHtml(f.nickname.charAt(0).toUpperCase());
+                        // [FIX] Render foto profil + bingkai rank langsung di HTML (tidak async lagi)
+                        const fStyle = _getRankFrameStyle(f.rkName);
+                        const avatarHtml = `<div style="width:40px;height:40px;border-radius:8px;overflow:hidden;${fStyle}display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f093fb,#f5576c);font-size:1.1em;font-weight:bold;color:white;flex-shrink:0;"><img src="${av('gambar/avatar/avatar'+f.avNum+'.png')}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none';this.parentElement.textContent='${init}'"></div>`;
+                        // [FIX] Rank image + nama rank sejajar di bawah status
+                        const rkTier = getRankTier(f.rkName);
+                        const rkBadgeHtml = `<div style="display:flex;align-items:center;gap:3px;margin-top:2px;"><img src="${av('gambar/rank/'+rkTier+'.png')}" style="width:13px;height:13px;object-fit:contain;" onerror="this.style.display='none'"><span style="font-size:0.68em;color:rgba(255,255,255,0.6);">${escHtml(f.rkName)}</span></div>`;
                         return `
-                        <button class="party-friend-item" style="${canInvite ? '' : 'opacity:0.52;cursor:default;'}"
+                        <button class="party-friend-item" id="pfli-${escHtml(f.uid)}" style="${canInvite ? '' : 'opacity:0.52;cursor:default;'}"
                             ${canInvite ? `onclick="playSound('button');_selectPartyFriend('${escHtml(f.uid)}','${escHtml(f.nickname)}',${_openPickerSlot || 2})"` : ''}>
-                            <div class="party-friend-avatar">${escHtml(f.nickname.charAt(0).toUpperCase())}</div>
+                            ${avatarHtml}
                             <div style="flex:1;min-width:0;text-align:left;">
                                 <div class="party-friend-name">${escHtml(f.nickname)}</div>
                                 <div style="font-size:0.72em;color:${statusColor};margin-top:2px;">${statusLabel}</div>
+                                ${rkBadgeHtml}
                             </div>
                         </button>`;
                     }).join('');
@@ -11398,8 +11963,7 @@
                     slotEl2.onclick = null;
                     const acceptedName = s.acceptorName || name;
                     document.getElementById(`pslot-${slotNum}-name`).textContent = escHtml(acceptedName);
-                    document.getElementById(`pslot-${slotNum}-sub`).textContent  = 'Siap bermain!';
-                    // Tampilkan foto profil + bingkai rank teman yang menerima
+                    // Tampilkan foto profil + bingkai rank teman yang menerima + rank image + nama rank (ganti "Siap bermain!")
                     Promise.all([
                         db.ref(`userAvatars/${uid}`).get(),
                         db.ref(`users/${uid}/rankData`).get()
@@ -11409,10 +11973,23 @@
                         const fStyle = _getRankFrameStyle(rkName);
                         const init = escHtml(acceptedName.charAt(0).toUpperCase());
                         const iconEl = document.getElementById(`pslot-${slotNum}-icon`);
-                        if (iconEl) iconEl.innerHTML = `<div style="width:54px;height:54px;border-radius:10px;overflow:hidden;${fStyle}display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f093fb,#f5576c);font-size:1.4em;font-weight:bold;color:white;"><img src="${av(`gambar/avatar/avatar${avNum}.png`)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.textContent='${init}'"></div>`;
+                        if (iconEl) {
+                            iconEl.style.cursor = 'pointer';
+                            iconEl.title = `Kunjungi profil ${acceptedName}`;
+                            iconEl.onclick = (e) => { e.stopPropagation(); playSound('button'); visitPlayerProfile(uid); };
+                            iconEl.innerHTML = `<div style="width:54px;height:54px;border-radius:10px;overflow:hidden;${fStyle}display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f093fb,#f5576c);font-size:1.4em;font-weight:bold;color:white;"><img src="${av(`gambar/avatar/avatar${avNum}.png`)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.textContent='${init}'"></div>`;
+                        }
+                        // Tampilkan rank image + nama rank di sub (ganti "Siap bermain!")
+                        const subEl = document.getElementById(`pslot-${slotNum}-sub`);
+                        if (subEl) subEl.innerHTML = _getRankSubHtml(rkName);
+                        // Nama bisa diklik untuk kunjungi profil
+                        const nameEl = document.getElementById(`pslot-${slotNum}-name`);
+                        if (nameEl) { nameEl.style.cursor = 'pointer'; nameEl.title = `Kunjungi profil ${acceptedName}`; nameEl.onclick = (e) => { e.stopPropagation(); playSound('button'); visitPlayerProfile(uid); }; }
                     }).catch(() => {
                         const iconEl = document.getElementById(`pslot-${slotNum}-icon`);
                         if (iconEl) iconEl.textContent = '✅';
+                        const subEl = document.getElementById(`pslot-${slotNum}-sub`);
+                        if (subEl) subEl.textContent = '';
                     });
                     playSound('invite');
                     showToast(`✅ ${acceptedName} menerima undangan!`, 'success');
@@ -11485,10 +12062,24 @@
             if (!el) return;
             el.className = 'party-slot empty';
             el.onclick = () => { playSound('button'); togglePartyFriendPicker(slotNum); };
-            document.getElementById(`pslot-${slotNum}-icon`).textContent  = '➕';
-            document.getElementById(`pslot-${slotNum}-name`).textContent  = 'Ajak Teman';
+            // [FIX] Reset icon element fully — hapus onclick lama (visitPlayerProfile) agar tidak terpanggil
+            const iconEl = document.getElementById(`pslot-${slotNum}-icon`);
+            iconEl.textContent  = '➕';
+            iconEl.onclick      = null;
+            iconEl.style.cursor = '';
+            iconEl.title        = '';
+            iconEl.removeAttribute('style');
+            // [FIX] Reset name element fully — hapus onclick lama (visitPlayerProfile)
+            const nameEl = document.getElementById(`pslot-${slotNum}-name`);
+            nameEl.textContent  = 'Ajak Teman';
+            nameEl.onclick      = null;
+            nameEl.style.cursor = '';
+            nameEl.title        = '';
+            // Reset sub & clear
             document.getElementById(`pslot-${slotNum}-sub`).textContent   = '(opsional)';
             document.getElementById(`pslot-${slotNum}-clear`).style.display = 'none';
+            // [FIX] Paksa buka picker untuk slot ini setelah reset (fix bug: picker tidak muncul setelah kick)
+            _openPickerSlot = null;
         }
 
         function _resetSlot2() { _resetPartySlot(2); }
@@ -11563,7 +12154,7 @@
                     soundEffects.bgMusic.play().catch(() => {});
                     _partyQueueSize = null;
                     if (_partyFirebaseId) _partyId = _partyFirebaseId;
-                    _setPresenceStatus('inLobby');
+                    _setPresenceStatus('inLobbyRanked');
                     // Kembalikan host ke lobi party
                     document.getElementById('party-lobby-overlay').style.display = 'flex';
                     const cancellerName = val?.cancelledBy || 'Salah satu pemain';
@@ -11665,7 +12256,7 @@
             _partyFirebaseId = inv.partyId; // Simpan ID Firebase asli untuk broadcast cancel
             _partyHostUid = inv.fromUid;
             _isPartyGuest = true;
-            _setPresenceStatus('inLobby');
+            _setPresenceStatus('inLobbyRanked');
             showToast('✅ Undangan diterima! Menunggu host memulai...', 'success');
             // Pasang onDisconnect: jika tamu offline/refresh → otomatis dihapus dari roster & status
             const guestRosterRef = db.ref(`partyRoster/${inv.partyId}/${currentUser.uid}`);
@@ -11722,7 +12313,7 @@
             _myPartySlot  = mySlotNum;   // Simpan agar bisa re-render saat kembali dari queue
             _partyHostName = hostName;   // Simpan nama host untuk re-render
             const otherSlotNum = mySlotNum === 2 ? 3 : 2;
-            // Slot 1: Tampilkan host dengan avatar + rank frame
+            // Slot 1: Tampilkan host dengan avatar + rank frame + rank image/name
             document.getElementById('pslot-1-name').textContent = escHtml(hostName);
             document.getElementById('pslot-1-icon').textContent = '⌛';
             Promise.all([
@@ -11734,7 +12325,16 @@
                 const fStyle = _getRankFrameStyle(rkName);
                 const init   = escHtml(hostName.charAt(0).toUpperCase());
                 const el = document.getElementById('pslot-1-icon');
-                if (el) el.innerHTML = `<div style="width:54px;height:54px;border-radius:10px;overflow:hidden;${fStyle}display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f093fb,#f5576c);font-size:1.4em;font-weight:bold;color:white;"><img src="${av(`gambar/avatar/avatar${avNum}.png`)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.textContent='${init}'"></div>`;
+                if (el) {
+                    el.style.cursor = 'pointer';
+                    el.title = `Kunjungi profil ${hostName}`;
+                    el.onclick = (e) => { e.stopPropagation(); playSound('button'); visitPlayerProfile(hostUid); };
+                    el.innerHTML = `<div style="width:54px;height:54px;border-radius:10px;overflow:hidden;${fStyle}display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f093fb,#f5576c);font-size:1.4em;font-weight:bold;color:white;"><img src="${av(`gambar/avatar/avatar${avNum}.png`)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.textContent='${init}'"></div>`;
+                }
+                const sub1 = document.getElementById('pslot-1-sub');
+                if (sub1) sub1.innerHTML = _getRankSubHtml(rkName);
+                const name1 = document.getElementById('pslot-1-name');
+                if (name1) { name1.style.cursor = 'pointer'; name1.title = `Kunjungi profil ${hostName}`; name1.onclick = (e) => { e.stopPropagation(); playSound('button'); visitPlayerProfile(hostUid); }; }
             }).catch(() => {});
             // Slot milik saya: tampilkan diri sendiri
             const mySlotEl = document.getElementById(`pslot-${mySlotNum}`);
@@ -11742,7 +12342,9 @@
             mySlotEl.onclick = null;
             document.getElementById(`pslot-${mySlotNum}-icon`).innerHTML = _getAvatarWithFrameHtml(54);
             document.getElementById(`pslot-${mySlotNum}-name`).textContent = escHtml(currentNickname || 'Kamu');
-            document.getElementById(`pslot-${mySlotNum}-sub`).textContent  = 'Siap bermain!';
+            // Tampilkan rank sendiri di sub (ganti "Siap bermain!")
+            const mySubEl = document.getElementById(`pslot-${mySlotNum}-sub`);
+            if (mySubEl) mySubEl.innerHTML = _getRankSubHtml(_cachedRankName || 'Bronze III');
             document.getElementById(`pslot-${mySlotNum}-clear`).style.display = 'none';
             // Slot tamu lain: non-interaktif (menunggu)
             const otherSlotEl = document.getElementById(`pslot-${otherSlotNum}`);
@@ -11777,7 +12379,7 @@
                         sOther.className = 'party-slot joined';
                         sOther.onclick = null;
                         document.getElementById(`pslot-${otherSlotNum}-name`).textContent = escHtml(theirName);
-                        document.getElementById(`pslot-${otherSlotNum}-sub`).textContent  = 'Siap bermain!';
+                        document.getElementById(`pslot-${otherSlotNum}-sub`).textContent  = '';
                         document.getElementById(`pslot-${otherSlotNum}-clear`).style.display = 'none';
                         document.getElementById(`pslot-${otherSlotNum}-icon`).textContent = '⌛';
                         Promise.all([
@@ -11789,7 +12391,16 @@
                             const fStyle = _getRankFrameStyle(rkName);
                             const init   = escHtml(theirName.charAt(0).toUpperCase());
                             const el = document.getElementById(`pslot-${otherSlotNum}-icon`);
-                            if (el) el.innerHTML = `<div style="width:54px;height:54px;border-radius:10px;overflow:hidden;${fStyle}display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f093fb,#f5576c);font-size:1.4em;font-weight:bold;color:white;"><img src="${av(`gambar/avatar/avatar${avNum}.png`)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.textContent='${init}'"></div>`;
+                            if (el) {
+                                el.style.cursor = 'pointer';
+                                el.title = `Kunjungi profil ${theirName}`;
+                                el.onclick = (ev) => { ev.stopPropagation(); playSound('button'); visitPlayerProfile(uid); };
+                                el.innerHTML = `<div style="width:54px;height:54px;border-radius:10px;overflow:hidden;${fStyle}display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f093fb,#f5576c);font-size:1.4em;font-weight:bold;color:white;"><img src="${av(`gambar/avatar/avatar${avNum}.png`)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.textContent='${init}'"></div>`;
+                            }
+                            const subEl = document.getElementById(`pslot-${otherSlotNum}-sub`);
+                            if (subEl) subEl.innerHTML = _getRankSubHtml(rkName);
+                            const nameEl = document.getElementById(`pslot-${otherSlotNum}-name`);
+                            if (nameEl) { nameEl.style.cursor = 'pointer'; nameEl.title = `Kunjungi profil ${theirName}`; nameEl.onclick = (ev) => { ev.stopPropagation(); playSound('button'); visitPlayerProfile(uid); }; }
                         }).catch(() => {});
                     });
                 });
@@ -11847,7 +12458,7 @@
                     _partyQueueSize = null;
                     // Kembalikan _partyId ke Firebase ID asli agar lobi party berfungsi
                     if (_partyFirebaseId) _partyId = _partyFirebaseId;
-                    _setPresenceStatus('inLobby');
+                    _setPresenceStatus('inLobbyRanked');
                     // Kembalikan ke lobi party (party tidak dibubarkan)
                     // Jika tamu: render ulang tampilan lobi guest dengan data yang tersimpan
                     if (_isPartyGuest && _partyHostUid && _partyHostName) {
@@ -12026,7 +12637,7 @@
             _customRoomId = null;
             _customPickerSlot = null;
             _isCustomRoomCreator = true; // user ini yang membuat room
-            _setPresenceStatus('inLobby');
+            _setPresenceStatus('inLobbyCustom');
 
             // Pastikan WS tersambung sebelum kirim
             if (!ws || ws.readyState !== WebSocket.OPEN) {
@@ -12157,15 +12768,22 @@
                     slot.classList.add('self');
                     slot.innerHTML = `
                         ${_getAvatarWithFrameHtml(36)}
-                        <div class="custom-slot-name">${myName}</div>
-                        <div class="custom-slot-tag">Kamu</div>`;
+                        <div class="custom-slot-name" style="flex:1;">${myName}</div>
+                        <div class="custom-slot-rank">
+                            <img src="${av('gambar/rank/'+getRankTier(_cachedRankName)+'.png')}" onerror="this.style.display='none'">
+                            <span>${escHtml(_cachedRankName || 'Bronze III')}</span>
+                        </div>
+                        <span style="background:rgba(244,67,54,0.2);border:1px solid rgba(244,67,54,0.4);border-radius:6px;width:26px;height:22px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:0.7em;line-height:1;box-sizing:border-box;">👑</span>`;
                 } else if (entry && entry.uid === myUid && !isSpect) {
                     // Non-host melihat dirinya sendiri di salah satu slot — render sebagai "Kamu"
                     slot.classList.add('self');
                     slot.innerHTML = `
                         ${_getAvatarWithFrameHtml(36)}
-                        <div class="custom-slot-name">${myName}</div>
-                        <div class="custom-slot-tag">Kamu</div>`;
+                        <div class="custom-slot-name" style="flex:1;">${myName}</div>
+                        <div class="custom-slot-rank">
+                            <img src="${av('gambar/rank/'+getRankTier(_cachedRankName)+'.png')}" onerror="this.style.display='none'">
+                            <span>${escHtml(_cachedRankName || 'Bronze III')}</span>
+                        </div>`;
                 } else if (entry?.isBot) {
                     // Slot bot — gunakan slotPos asli untuk hapus
                     const levelLabel = entry.level === 1 ? 'Mudah' : entry.level === 2 ? 'Normal' : 'Sulit';
@@ -12178,10 +12796,14 @@
                     // Slot teman — gunakan slotPos asli untuk kick
                     slot.classList.add('filled');
                     const cIconId = `cslot-icon-${slotPos}`;
+                    const cRankId = `cslot-rank-${slotPos}`;
+                    const cNameId = `cslot-name-${slotPos}`;
                     const cInit   = escHtml(entry.name.charAt(0).toUpperCase());
+                    const entryUid = entry.uid;
                     slot.innerHTML = `
-                        <div id="${cIconId}" style="width:36px;height:36px;border-radius:6px;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f093fb,#f5576c);font-size:1em;font-weight:bold;color:white;flex-shrink:0;">${cInit}</div>
-                        <div class="custom-slot-name">${escHtml(entry.name)}</div>
+                        <div id="${cIconId}" style="width:36px;height:36px;border-radius:6px;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f093fb,#f5576c);font-size:1em;font-weight:bold;color:white;flex-shrink:0;${entryUid && !entry.pending ? 'cursor:pointer;' : ''}" ${entryUid && !entry.pending ? `onclick="playSound('button');visitPlayerProfile('${entryUid}')" title="Kunjungi profil ${escHtml(entry.name)}"` : ''}>${cInit}</div>
+                        <div id="${cNameId}" class="custom-slot-name" style="flex:1;${entryUid && !entry.pending ? 'cursor:pointer;' : ''}" ${entryUid && !entry.pending ? `onclick="playSound('button');visitPlayerProfile('${entryUid}')" title="Kunjungi profil ${escHtml(entry.name)}"` : ''}>${escHtml(entry.name)}</div>
+                        <div id="${cRankId}" class="custom-slot-rank"></div>
                         ${canManageBots ? `<button class="custom-slot-clear" onclick="playSound('button');clearCustomSlot(${slotPos})">✖</button>` : ''}`;
                     // Fetch avatar + rank frame async (hanya slot yang sudah dikonfirmasi)
                     if (entry.uid && !entry.pending) {
@@ -12193,7 +12815,9 @@
                             const rkName = rkSnap.exists() ? (rkSnap.val().rankName || 'Bronze III') : 'Bronze III';
                             const fStyle = _getRankFrameStyle(rkName);
                             const el = document.getElementById(cIconId);
-                            if (el) el.outerHTML = `<div style="width:36px;height:36px;border-radius:6px;overflow:hidden;${fStyle}display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f093fb,#f5576c);font-size:1em;font-weight:bold;color:white;flex-shrink:0;"><img src="${av(`gambar/avatar/avatar${avNum}.png`)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.textContent='${cInit}'"></div>`;
+                            if (el) el.outerHTML = `<div id="${cIconId}" style="width:36px;height:36px;border-radius:6px;overflow:hidden;${fStyle}display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f093fb,#f5576c);font-size:1em;font-weight:bold;color:white;flex-shrink:0;cursor:pointer;" onclick="playSound('button');visitPlayerProfile('${uid}')" title="Kunjungi profil ${cInit}"><img src="${av(`gambar/avatar/avatar${avNum}.png`)}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.textContent='${cInit}'"></div>`;
+                            const rankEl = document.getElementById(cRankId);
+                            if (rankEl) rankEl.innerHTML = `<img src="${av('gambar/rank/'+getRankTier(rkName)+'.png')}" onerror="this.style.display='none'"><span>${escHtml(rkName)}</span>`;
                         }).catch(() => {}))(entry.uid);
                     }
                 } else {
@@ -12273,20 +12897,43 @@
                 }
                 const friends = myFriendsSnap.val();
                 const uids = Object.keys(friends);
-                // Fetch semua nickname sekali
-                const profiles = await Promise.all(uids.map(uid =>
-                    db.ref(`users/${uid}/nickname`).get().then(s => ({ uid, nickname: s.val() || 'Unknown' }))
-                ));
+
+                // [FIX] Fetch nickname + avatar + rank sekaligus sebelum render
+                // Menghindari race condition: presence listener render ulang DOM → elemen lama hilang
+                const _cflCache = {};
+                await Promise.all(uids.map(async uid => {
+                    try {
+                        const [nickSnap, avSnap, rkSnap, expSnap] = await Promise.all([
+                            db.ref(`users/${uid}/nickname`).get(),
+                            db.ref(`userAvatars/${uid}`).get(),
+                            db.ref(`users/${uid}/rankData`).get(),
+                            db.ref(`users/${uid}/playerExp`).get()
+                        ]);
+                        _cflCache[uid] = {
+                            nickname: nickSnap.val() || 'Unknown',
+                            avNum: avSnap.exists() ? String(avSnap.val()) : '7',
+                            rkName: rkSnap.exists() ? (rkSnap.val().rankName || 'Bronze III') : 'Bronze III',
+                            expVal: expSnap.exists() ? (expSnap.val() || 0) : 0
+                        };
+                    } catch(e) {
+                        _cflCache[uid] = { nickname: 'Unknown', avNum: '7', rkName: 'Bronze III', expVal: 0 };
+                    }
+                }));
+
+                const profiles = uids.map(uid => ({ uid, ..._cflCache[uid] }));
                 if (friendsSection) friendsSection.remove();
 
-                // Fungsi render menggunakan data presence terbaru
+                // Fungsi render — semua data sudah tersedia, langsung inject ke HTML
                 function renderCustomWithPresence(presence) {
                     const invitedUids = Object.values(_customRoomSlots).filter(s => s && !s.isBot).map(s => s.uid);
                     invitedUids.push(currentUser.uid);
                     const sorted = [...profiles].sort((a, b) => {
-                        const aOk = _getPresenceInfo(presence[a.uid]).online && !_getPresenceInfo(presence[a.uid]).status && !invitedUids.includes(a.uid) ? 0 : 1;
-                        const bOk = _getPresenceInfo(presence[b.uid]).online && !_getPresenceInfo(presence[b.uid]).status && !invitedUids.includes(b.uid) ? 0 : 1;
-                        return aOk - bOk;
+                        const aInfo = _getPresenceInfo(presence[a.uid]);
+                        const bInfo = _getPresenceInfo(presence[b.uid]);
+                        return _cmpSortKey(
+                            _friendSortKey(aInfo, a.rkName, a.expVal, invitedUids.includes(a.uid)),
+                            _friendSortKey(bInfo, b.rkName, b.expVal, invitedUids.includes(b.uid))
+                        );
                     });
                     // Hapus semua item teman lama (setelah bot section)
                     const existing = listDiv.querySelectorAll('.custom-friend-item');
@@ -12307,18 +12954,30 @@
                             statusLabel = '🎮 Sedang bermain'; statusColor = 'rgba(244,67,54,0.9)';
                         } else if (presInfo.status === 'inQueue') {
                             statusLabel = '🔍 Mencari lawan'; statusColor = 'rgba(255,193,7,0.9)';
+                        } else if (presInfo.status === 'inLobbyRanked') {
+                            statusLabel = '🏆 Di Lobby Ranked'; statusColor = 'rgba(255,193,7,0.9)';
+                        } else if (presInfo.status === 'inLobbyCustom') {
+                            statusLabel = '⚔️ Di Lobby Custom'; statusColor = 'rgba(206,147,216,0.9)';
                         } else if (presInfo.status === 'inLobby') {
                             statusLabel = '🚪 Sedang di lobby'; statusColor = 'rgba(255,193,7,0.9)';
                         } else {
                             canInvite = true; statusLabel = '🟢 Online'; statusColor = 'rgba(76,175,80,0.9)';
                         }
+                        const init = escHtml(f.nickname.charAt(0).toUpperCase());
+                        // [FIX] Render foto profil + bingkai rank langsung (tidak async)
+                        const fStyle = _getRankFrameStyle(f.rkName);
+                        const rkTier = getRankTier(f.rkName);
+                        const avatarHtml = `<div style="width:40px;height:40px;border-radius:8px;overflow:hidden;${fStyle}display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f093fb,#f5576c);font-size:1.1em;font-weight:bold;color:white;flex-shrink:0;"><img src="${av('gambar/avatar/avatar'+f.avNum+'.png')}" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none';this.parentElement.textContent='${init}'"></div>`;
+                        const rkBadgeHtml = `<div style="display:flex;align-items:center;gap:3px;margin-top:2px;"><img src="${av('gambar/rank/'+rkTier+'.png')}" style="width:13px;height:13px;object-fit:contain;" onerror="this.style.display='none'"><span style="font-size:0.68em;color:rgba(255,255,255,0.7);">${escHtml(f.rkName)}</span></div>`;
                         const item = document.createElement('div');
                         item.className = 'custom-friend-item';
                         item.style.opacity = canInvite ? '' : '0.52';
                         item.innerHTML = `
+                            ${avatarHtml}
                             <div style="flex:1;min-width:0;">
                                 <div class="custom-friend-name">${escHtml(f.nickname)}</div>
                                 <div style="font-size:0.72em;color:${statusColor};margin-top:2px;">${statusLabel}</div>
+                                ${rkBadgeHtml}
                             </div>
                             ${canInvite ? `<button class="custom-friend-btn" onclick="playSound('button');inviteToCustomRoom('${escHtml(f.uid)}','${escHtml(f.nickname).replace(/'/g,"\\'")}',${slotPos})">Undang</button>` : ''}`;
                         listDiv.appendChild(item);
@@ -12604,7 +13263,7 @@
                 _pendingCustomJoin = true;
                 _isCustomRoomCreator = false;
                         _pendingBotAdd = false; // bergabung sebagai tamu, bukan pencipta room
-                _setPresenceStatus('inLobby');
+                _setPresenceStatus('inLobbyCustom');
                 showToast('⏳ Bergabung ke custom room...', 'info');
                 const myName = currentNickname || lsGet(LS.NICKNAME) || 'Player';
                 ws.send(JSON.stringify({
@@ -13319,6 +13978,7 @@
                 <div class="party-slot filled" id="pslot-1">
                     <div class="party-slot-icon" id="pslot-1-icon">👤</div>
                     <div class="party-slot-name" id="pslot-1-name">Kamu</div>
+                    <div class="party-slot-sub" id="pslot-1-sub" style="display:flex;align-items:center;gap:3px;justify-content:center;"></div>
                 </div>
 
                 <div class="party-vs-divider">+</div>
@@ -14141,9 +14801,12 @@ async function showAchievementScreen() {
     const scr = document.getElementById('achievement-screen');
     if (!scr) return;
 
-    // [FIX] Deteksi screen aktif SEBELUM menutupnya
+    // [FIX v13] Deteksi screen aktif SEBELUM menutupnya.
+    // custom-room-overlay dikecualikan sepenuhnya: kita tidak menutupnya saat buka achievement,
+    // dan user bisa menekan bubble untuk memunculkannya langsung di depan achievement-screen.
     _achPreviousScreen = null;
     for (const { id, displayVal } of _ACH_SCREEN_MAP) {
+        if (id === 'custom-room-overlay') continue; // dikecualikan, tidak perlu disimpan
         const el = document.getElementById(id);
         if (el && el.style.display && el.style.display !== 'none') {
             _achPreviousScreen = { id, restoreWith: displayVal };
@@ -14160,8 +14823,11 @@ async function showAchievementScreen() {
         }
     }
 
-    // [FIX] Tutup semua screen dengan cara yang benar (sesuai ID asli HTML)
+    // [FIX v13] Tutup semua screen KECUALI custom-room-overlay.
+    // custom-room-overlay tidak ditutup karena user bisa menekan bubble untuk
+    // memunculkannya di depan achievement-screen (z-index 39000 > 31000).
     _ACH_SCREEN_MAP.forEach(({ id }) => {
+        if (id === 'custom-room-overlay') return; // biarkan, jangan tutup
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
@@ -14739,10 +15405,31 @@ window.addEventListener('online', () => {
             // Di halaman home — update pesan saja, JANGAN tutup popup & jalankan retryFn
             msg.textContent = 'Koneksi internet kembali!\nTekan Coba Lagi untuk melanjutkan.';
             if (typeof showToast === 'function') showToast('\u2705 Koneksi internet kembali! Tekan Coba Lagi.', 'success');
+            // [BUG FIX 1] Pastikan layar home (matchmaking-screen) terlihat kembali
+            // agar tombol RANKED, Leaderboard, dll tidak hilang setelah koneksi pulih.
+            const _mmScr = document.getElementById('matchmaking-screen');
+            if (_mmScr && !_mmScr.classList.contains('active')) {
+                _mmScr.classList.add('active');
+            }
+            const _pb = document.getElementById('profile-badge');
+            if (_pb && _pb.style.display === 'none') _pb.style.display = 'block';
         } else {
-            // Sedang matchmaking — boleh tutup popup & lanjutkan
-            hideServerErrorPopup();
-            if (typeof showToast === 'function') showToast('\u2705 Koneksi internet kembali! Silakan coba lagi.', 'success');
+            // Sedang matchmaking — validasi koneksi nyata ke server dulu sebelum tutup popup
+            // [BUG FIX 2] Browser bisa tembak event 'online' meski koneksi belum stabil.
+            // Menutup popup langsung tanpa cek server menyebabkan notif hilang tiba-tiba.
+            (async () => {
+                const ok = typeof window._checkRealConnectivity === 'function'
+                    ? await window._checkRealConnectivity()
+                    : navigator.onLine;
+                if (!ok) {
+                    // Sinyal kembali tapi server belum reachable — jangan tutup popup
+                    if (msg) msg.textContent = 'Koneksi belum stabil...\nHarap tunggu sebentar atau tekan Coba Lagi.';
+                    return;
+                }
+                hideServerErrorPopup();
+                if (typeof showToast === 'function') showToast('\u2705 Koneksi internet kembali! Silakan coba lagi.', 'success');
+            })();
+            return; // async di atas handle selebihnya
         }
     }
     // Jika in-game dan overlay reconnecting aktif, mulai ulang reconnect
